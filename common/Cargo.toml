@@ -9,3 +9,6 @@ edition = "2021"
 crate-type=["dylib"]
 
 [dependencies]
+
+[features]
+no_std=[]

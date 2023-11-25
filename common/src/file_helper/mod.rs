@@ -12,7 +12,7 @@ pub fn config_path() -> PathBuf {
     buff
 }
 
-pub fn create_dir_if_not_exist(new_path : &str) -> Result<(), std::io::Error> {
+pub fn create_dir_if_not_exist(new_path: &str) -> Result<(), std::io::Error> {
     if !fs::metadata(new_path).is_ok() {
         fs::create_dir_all(new_path)?;
     }
@@ -22,17 +22,18 @@ pub fn create_dir_if_not_exist(new_path : &str) -> Result<(), std::io::Error> {
 #[cfg(test)]
 mod integration_test {
     use super::*;
+
     fn setup() {
         let cu_path = PathBuf::from("./target/");
         let _ = std::env::set_current_dir(cu_path.as_path());
     }
 
     #[test]
-    fn  test_create_config_dir() {
+    fn test_create_config_dir() {
         setup();
         match create_dir_if_not_exist("config") {
-            Ok(())=> {},
-            Err(err) => { panic!("{}",err); }
+            Ok(()) => {}
+            Err(err) => { panic!("{}", err); }
         }
     }
 }
@@ -43,7 +44,7 @@ mod unit_tests {
 
     #[test]
     fn test_current_path() {
-        let buff= current_path();
+        let buff = current_path();
         assert_ne!(buff.as_os_str(), "");
     }
 
@@ -51,7 +52,7 @@ mod unit_tests {
     fn test_config_path() {
         let c_buff = config_path();
         let config_path_str = String::from(c_buff.to_str().unwrap());
-        println!("{}",config_path_str);
+        println!("{}", config_path_str);
         assert!(config_path_str.ends_with("config"))
     }
 }

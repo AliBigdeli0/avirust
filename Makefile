@@ -5,8 +5,8 @@ COMMON_PATH=$(PWD)/common
 LINUX_LIBS=$(CLIENT_PATH)/target/linux_libs
 LINUX_RUST_UP_PATH=/home/mehran/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib
 LINUX_DEBUG_PATH=$(LINUX_LIBS)/../debug
-STD_LIB_SO:=libstd-fcf70ff533b679b2.so
 
+STD_LIB_SO:=libstd-fcf70ff533b679b2.so
 STD_LIB_DLL:=std-02223d1a8ebc115e.dll
 
 #windows
@@ -21,7 +21,7 @@ PROJ_LIST:= $(PWD)/common $(PWD)/entity  $(PWD)/client
 ################################
 define func_build_cargo
 	@for item in $1; do \
-		cargo $2 $3 --manifest-path $$item/Cargo.toml ; \
+		CARGO_FEATURE="--features crt-static" cargo $2 $3 --manifest-path $$item/Cargo.toml ; \
 	done
 endef
 
