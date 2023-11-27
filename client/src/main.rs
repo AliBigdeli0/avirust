@@ -20,12 +20,12 @@ fn print_info() {
 
 #[cfg(test)]
 mod test {
-    use entity::serializer_helper::serialize;
+    use entity::serializer_helper::serialize_json;
     use entity::dto::Point;
 
     #[test]
     fn serialize_out_of_scope() {
-        let obj = serialize(&Point { x: 10, y: 20 }).unwrap();
+        let obj = serialize_json(&Point { x: 10, y: 20 }).unwrap();
         assert!(obj.contains("10"));
         assert!(obj.contains("20"));
     }

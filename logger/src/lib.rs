@@ -1,9 +1,3 @@
-const CONFIG_FILE_CONTENT: &str = include_str!("../resources/log4rs.yml");
-
-use std::{
-    fs::File,
-    io::Write
-};
 use log::{info, error};
 
 pub fn get_version() -> String {
@@ -11,13 +5,10 @@ pub fn get_version() -> String {
 }
 
 pub fn init() {
+    config::init_config_yaml();
+
     let config_path = common::file_helper::log4rs_yaml_path();
-    {
-        let mut file = File::create(config_path.clone()).unwrap();
-        file.write(CONFIG_FILE_CONTENT.as_bytes()).unwrap();
-        file.flush().unwrap();
-    }
-    log4rs::init_file(config_path.clone(), Default::default()).unwrap();
+    log4rs::init_file(config_path, Default::default()).unwrap();
 }
 
 pub fn info(msg: &str) {
@@ -36,10 +27,5 @@ mod tests {
     fn version() {
         let ver = get_version();
         assert_eq!(&ver, "1.0.0");
-    }
-
-    #[test]
-    fn config_file_content_test() {
-        assert_ne!(CONFIG_FILE_CONTENT, "");
     }
 }

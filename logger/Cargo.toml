@@ -8,5 +8,6 @@ crate-type = ["rlib","dylib"]
 
 [dependencies]
 common = { version = "0.1.0", path = "../common" }
+config = { version = "0.1.0", path = "../config" }
 log = "0.4.20"
 log4rs = "1.2.0"
