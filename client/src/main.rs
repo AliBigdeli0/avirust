@@ -1,22 +1,20 @@
 fn main() {
-    print_info();
-
     logger::init();
-    logger::info("###$#$#$#$#$#$#$#$$$#$#$");
-    logger::error("here is");
+    print_info();
 }
 
 fn print_info() {
-    println!("going to startup the program...");
+    logger::info("===================================");
+    logger::info("going to startup the program...");
 
     // libs
-    println!("common version is: {}", common::get_lib_version());
-    println!("entity version is: {}", entity::get_version());
-    println!("logger version is: {}", logger::get_version());
+    logger::info(format!("common version is: {}", common::get_lib_version()).as_str());
+    logger::info(format!("entity version is: {}", entity::get_version()).as_str());
+    logger::info(format!("logger version is: {}", logger::get_version()).as_str());
 
     // directory ifo
-    println!("working directory is: {}", common::file_helper::current_path().to_str().unwrap());
-    println!("configure directory is: {}", common::file_helper::config_path().to_str().unwrap());
+    logger::info(format!("working directory is: {}", common::file_helper::current_path().to_str().unwrap()).as_str());
+    logger::info(format!("configure directory is: {}", common::file_helper::config_path().to_str().unwrap()).as_str());
 }
 
 

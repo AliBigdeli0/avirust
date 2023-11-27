@@ -10,7 +10,7 @@ appenders:
     kind: file
     encoder:
       pattern: "{d(%Y-%m-%d %H:%M:%S)} | {({l}):5.5} | - {m}{n}"
-    path: "logs/launcher.log"
+    path: "logs/program.log"
 
 root:
   level: debug

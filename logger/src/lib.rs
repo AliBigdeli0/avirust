@@ -1,7 +1,9 @@
 const CONFIG_FILE_CONTENT: &str = include_str!("../resources/log4rs.yml");
 
-use std::fs::File;
-use std::io::Write;
+use std::{
+    fs::File,
+    io::Write
+};
 use log::{info, error};
 
 pub fn get_version() -> String {
@@ -18,12 +20,12 @@ pub fn init() {
     log4rs::init_file(config_path.clone(), Default::default()).unwrap();
 }
 
-pub fn info(msg: &'static str) {
+pub fn info(msg: &str) {
     info!("{}",msg);
 }
 
-pub fn error(msg: &'static str) {
-    error!("{}", msg);
+pub fn error(msg: &str) {
+    error!("{}",msg);
 }
 
 #[cfg(test)]
