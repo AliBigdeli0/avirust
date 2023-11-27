@@ -1,6 +1,6 @@
 use std::env::current_dir;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{PathBuf};
 
 pub fn current_path() -> PathBuf {
     current_dir().unwrap()
@@ -10,6 +10,10 @@ pub fn config_path() -> PathBuf {
     let buff = current_path().join("config");
     create_dir_if_not_exist(buff.as_os_str().to_str().unwrap()).unwrap();
     buff
+}
+
+pub fn log4rs_yaml_path() -> PathBuf {
+    config_path().join("log4rs.yaml")
 }
 
 pub fn log_file_path() -> PathBuf {

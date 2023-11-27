@@ -50,6 +50,9 @@ test::
 
 clean::
 	$(call func_build_cargo,$(PROJ_LIST), clean)
+
+cargo_action::
+	$(call func_build_cargo,$(PROJ_LIST), $(PROJ_ACTION))
 ################################
 # windows generator
 
