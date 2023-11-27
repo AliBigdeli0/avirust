@@ -15,7 +15,7 @@ WIN_RELEASE_PATH=$(WIN_LIBS)/../x86_64-pc-windows-gnu/release
 WIN_RUST_UP_PATH=/home/mehran/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-pc-windows-gnu/lib
 WIN_TARGET:= --target x86_64-pc-windows-gnu --release
 
-PROJ_LIST:= $(PWD)/common $(PWD)/entity  $(PWD)/client
+PROJ_LIST:= $(PWD)/common $(PWD)/logger $(PWD)/entity  $(PWD)/client
 
 .PHONY: build test
 ################################

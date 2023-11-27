@@ -12,6 +12,12 @@ pub fn config_path() -> PathBuf {
     buff
 }
 
+pub fn log_file_path() -> PathBuf {
+    let buff = current_path().join("logs");
+    create_dir_if_not_exist(buff.as_os_str().to_str().unwrap()).unwrap();
+    buff.join("luncher.log")
+}
+
 pub fn create_dir_if_not_exist(new_path: &str) -> Result<(), std::io::Error> {
     if !fs::metadata(new_path).is_ok() {
         fs::create_dir_all(new_path)?;

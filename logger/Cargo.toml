@@ -1,0 +1,12 @@
+[package]
+name = "logger"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["rlib","dylib"]
+
+[dependencies]
+common = { version = "0.1.0", path = "../common" }
+env_logger = "0.10.1"
+log = "0.4.20"
