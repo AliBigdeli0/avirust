@@ -16,6 +16,10 @@ pub fn log4rs_yaml_path() -> PathBuf {
     config_path().join("log4rs.yaml")
 }
 
+pub fn server_yaml_path()-> PathBuf {
+    config_path().join("server.yaml")
+}
+
 pub fn log_file_path() -> PathBuf {
     let buff = current_path().join("logs");
     create_dir_if_not_exist(buff.as_os_str().to_str().unwrap()).unwrap();
@@ -27,6 +31,14 @@ pub fn create_dir_if_not_exist(new_path: &str) -> Result<(), std::io::Error> {
         fs::create_dir_all(new_path)?;
     }
     Ok(())
+}
+
+pub fn file_exist(file_path: PathBuf) -> bool {
+    if let Ok(metadata) = fs::metadata(file_path) {
+        metadata.is_file()
+    } else {
+        false
+    }
 }
 
 #[cfg(test)]

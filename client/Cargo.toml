@@ -7,3 +7,4 @@ edition = "2021"
 common = { version = "0.1.0", path = "../common" }
 logger = { version = "0.1.0", path = "../logger" }
 entity = { version = "0.1.0", path = "../entity" }
+config = { version = "0.1.0", path = "../config" }

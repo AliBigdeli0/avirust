@@ -5,6 +5,8 @@ pub fn get_version() -> &'static str{
 
 pub mod serializer_helper;
 pub mod dto;
+pub mod model;
+
 
 
 #[cfg(test)]
