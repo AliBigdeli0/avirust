@@ -9,3 +9,4 @@ logger = { version = "0.1.0", path = "../logger" }
 entity = { version = "0.1.0", path = "../entity" }
 config = { version = "0.1.0", path = "../config" }
 web = { version = "0.1.0", path = "../web" }
+tokio = { version = "1.34.0", features = ["full"] }

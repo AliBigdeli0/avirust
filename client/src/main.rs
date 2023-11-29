@@ -1,10 +1,11 @@
 
-fn main() {
+#[tokio::main]
+async fn main() {
     logger::init();
     print_info();
 
     web::init();
-    web::run_wait();
+    web::run_wait().await;
 }
 
 fn print_info() {

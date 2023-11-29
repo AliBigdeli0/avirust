@@ -1,3 +1,5 @@
+pub mod default_dto;
+
 use serde::Deserialize;
 use serde::Serialize;
 

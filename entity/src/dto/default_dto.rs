@@ -1,0 +1,19 @@
+
+use serde::Deserialize;
+use serde::Serialize;
+
+#[derive(Deserialize, Serialize)]
+pub struct  IsReady<'a> {
+    id: usize ,
+    message: &'a str
+}
+
+impl Default for IsReady<'_> {
+     fn default() -> Self {
+        Self {
+            id : 0,
+            message: ""
+        }
+    }
+}
+
