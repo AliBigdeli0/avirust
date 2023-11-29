@@ -15,7 +15,7 @@ pub struct ServerConfig {
 impl Default for ServerInfo {
     fn default() -> Self {
         Self {
-            listen: String::from("127.0.0.1"),
+            listen: String::from("0.0.0.0"),
             port: 9001
         }
     }
