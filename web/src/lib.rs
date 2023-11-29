@@ -4,6 +4,7 @@ mod controller;
 
 use std::net::IpAddr;
 use rocket::config::{Config};
+use rocket::fs::FileServer;
 use std::str::FromStr;
 
 pub fn get_version() -> &'static str {
@@ -26,6 +27,7 @@ pub async  fn run_wait() {
         .mount("/api/v1", routes![
             controller::actions::is_ready
         ])
+        .mount("/", FileServer::from("static/"))
         .launch()
         .await
     {

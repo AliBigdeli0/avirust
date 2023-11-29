@@ -5,6 +5,7 @@ COMMON_PATH=$(PWD)/common
 LINUX_LIBS=$(CLIENT_PATH)/target/linux_libs
 LINUX_RUST_UP_PATH=/home/mehran/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib
 LINUX_DEBUG_PATH=$(LINUX_LIBS)/../debug
+LINUX_STATIC_DEBUG=$(LINUX_DEBUG_PATH)/static
 
 STD_LIB_SO:=libstd-fcf70ff533b679b2.so
 STD_LIB_DLL:=std-02223d1a8ebc115e.dll
@@ -38,7 +39,7 @@ endef
 
 ###############################
 ## original status
-run:: build test
+run:: build test copy_www_files
 	@echo "======================================================"
 	@cd $(LINUX_DEBUG_PATH); cargo run --manifest-path $(CLIENT_PATH)/Cargo.toml
 
@@ -56,6 +57,12 @@ clean::
 
 cargo_action::
 	$(call func_build_cargo,$(PROJ_LIST), $(PROJ_ACTION))
+
+
+copy_www_files::
+	@rm -rf $(LINUX_STATIC_DEBUG)
+	@mkdir -p $(LINUX_STATIC_DEBUG)
+	@cp -r $(PWD)/client/static/* $(LINUX_STATIC_DEBUG)
 ################################
 # windows generator
 
