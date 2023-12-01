@@ -13,6 +13,7 @@ STD_LIB_DLL:=std-02223d1a8ebc115e.dll
 #windows
 WIN_LIBS=$(CLIENT_PATH)/target/win_libs
 WIN_RELEASE_PATH=$(WIN_LIBS)/../x86_64-pc-windows-gnu/release
+WIN_STATIC_RELEASE=$(WIN_RELEASE_PATH)/static
 WIN_RUST_UP_PATH=/home/mehran/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-pc-windows-gnu/lib
 WIN_TARGET:= --target x86_64-pc-windows-gnu --release
 
@@ -66,8 +67,15 @@ copy_www_files::
 ################################
 # windows generator
 
+copy_www_files_win::
+	@rm -rf $(WIN_STATIC_RELEASE)
+	@mkdir -p $(WIN_STATIC_RELEASE)
+	@cp -r $(PWD)/client/static/* $(WIN_STATIC_RELEASE)
+
+
 copy_win_libs::
 	$(call copy_libs,$(WIN_LIBS),$(WIN_RUST_UP_PATH),$(STD_LIB_DLL),$(WIN_RELEASE_PATH));
 
-build_win:: copy_win_libs
+build_win:: copy_win_libs copy_www_files_win
 	$(call func_build_cargo,$(PROJ_LIST), 'build', $(WIN_TARGET))
+

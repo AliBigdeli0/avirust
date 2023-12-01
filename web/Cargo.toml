@@ -3,6 +3,9 @@ name = "web"
 version = "0.1.0"
 edition = "2021"
 
+[profile.win]
+inherits="release"
+
 [lib]
 crate-type = ["rlib","dylib"]
 
@@ -10,4 +13,7 @@ crate-type = ["rlib","dylib"]
 config = { version = "0.1.0", path = "../config" }
 entity = { version = "0.1.0", path = "../entity" }
 logger = { version = "0.1.0", path = "../logger" }
-rocket = "0.5.0"
+
+[dependencies.rocket]
+version = "0.5.0"
+features = ["json"]

@@ -3,6 +3,9 @@ name = "logger"
 version = "0.1.0"
 edition = "2021"
 
+[profile.win]
+inherits="release"
+
 [lib]
 crate-type = ["rlib","dylib"]
 
