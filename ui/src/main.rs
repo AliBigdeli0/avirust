@@ -3,6 +3,7 @@
 mod app;
 
 use eframe::egui;
+use eframe::egui::{Style, Visuals};
 
 pub fn get_ui_version() -> &'static str {
     "1.0.0"
@@ -19,7 +20,12 @@ fn main() -> Result<(), eframe::Error> {
     eframe::run_native(
         "MED UI",
         options,
-        Box::new(|_| {
+        Box::new(|creation_context| {
+            let style = Style {
+                visuals: Visuals::dark(),
+                ..Style::default()
+            };
+            creation_context.egui_ctx.set_style(style);
             Box::<app::App>::default()
         }),
     )
