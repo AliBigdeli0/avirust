@@ -1,0 +1,12 @@
+[package]
+name = "ui"
+version = "0.1.0"
+edition = "2021"
+
+[profile.win]
+inherits="release"
+
+[dependencies]
+eframe = "0.24.1"
+egui_extras = "0.24.1"
+logger = { version = "0.1.0", path = "../logger" }

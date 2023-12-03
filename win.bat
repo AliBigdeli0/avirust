@@ -8,6 +8,8 @@ set CONFIG_PROJ=%PROJ_PATH%\config
 set LOGGER_PROJ=%PROJ_PATH%\logger
 set WEB_PROJ=%PROJ_PATH%\web
 set CLIENT_PROJ=%PROJ_PATH%\client
+set UI_PROJ=%PROJ_PATH%\ui
+set OFFLINE_FILES=%PROJ_PATH%\offline_files
 
 set FLAGS=--profile win
 

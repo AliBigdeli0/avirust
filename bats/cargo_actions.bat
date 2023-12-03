@@ -36,3 +36,11 @@ cargo %ACTION% %FLAGS%
 if %errorlevel% neq 0 (
   exit /b 1
 )
+
+cd %UI_PROJ%
+cargo %ACTION% %FLAGS% 
+if %errorlevel% neq 0 (
+  exit /b 1
+)
+
+
