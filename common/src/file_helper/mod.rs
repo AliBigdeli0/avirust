@@ -20,6 +20,10 @@ pub fn server_yaml_path()-> PathBuf {
     config_path().join("server.yaml")
 }
 
+pub fn db_yaml_path()-> PathBuf {
+    config_path().join("db.yaml")
+}
+
 pub fn log_file_path() -> PathBuf {
     let buff = current_path().join("logs");
     create_dir_if_not_exist(buff.as_os_str().to_str().unwrap()).unwrap();

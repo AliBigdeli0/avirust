@@ -19,7 +19,7 @@ WIN_STATIC_RELEASE=$(WIN_RELEASE_PATH)/static
 WIN_RUST_UP_PATH=/home/mehran/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-pc-windows-gnu/lib
 WIN_TARGET:= --target x86_64-pc-windows-gnu --release
 
-PROJ_LIST:= $(PWD)/common $(PWD)/config $(PWD)/logger $(PWD)/entity $(PWD)/web $(PWD)/ui $(PWD)/client
+PROJ_LIST:= $(PWD)/common $(PWD)/config $(PWD)/logger $(PWD)/entity $(PWD)/db $(PWD)/web  $(PWD)/ui $(PWD)/client
 
 .PHONY: build test
 ################################
@@ -44,11 +44,11 @@ endef
 ## original status
 run:: build test copy_www_files
 	@echo "======================================================"
-	@cargo run --manifest-path $(CLIENT_PATH)/Cargo.toml
+	@cd $(LINUX_DEBUG_PATH);cargo run --manifest-path $(CLIENT_PATH)/Cargo.toml
 
 run_ui:: build test copy_www_files
 	@echo "======================================================"
-	@cd ;cargo run --manifest-path $(UI_PATH)/Cargo.toml
+	@cd $(LINUX_UI_DEBUG_PATH);cargo run --manifest-path $(UI_PATH)/Cargo.toml
 
 copy_linux_libs::
 	$(call copy_libs,$(LINUX_LIBS),$(LINUX_RUST_UP_PATH),$(STD_LIB_SO),$(LINUX_DEBUG_PATH));

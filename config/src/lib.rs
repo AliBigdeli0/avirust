@@ -6,6 +6,7 @@ use std::{
 };
 use std::io::Read;
 use entity::model::server_config::ServerConfig;
+use entity::model::db_config::DBConfig;
 
 pub fn get_version() -> &'static str {
     "1.0.0"
@@ -23,14 +24,15 @@ pub fn init_config_yaml() {
 
 pub fn create_server_config_if_not_exist() {
     let server_config_path = common::file_helper::server_yaml_path();
+    let object_to_serliaze: ServerConfig = Default::default();
 
-    if !common::file_helper::file_exist(server_config_path.clone()) {
-        let object_to_serliaze: ServerConfig = Default::default();
-        let serialized_config = entity::serializer_helper::serialize_yaml(&object_to_serliaze).unwrap();
+    entity::serializer_helper::write_in_file_if_not_exist(server_config_path, &object_to_serliaze).unwrap();
+}
 
-        let mut file = File::create(server_config_path.clone()).unwrap();
-        let _ = file.write(serialized_config.as_bytes());
-    }
+pub fn create_db_config_if_not_exist() {
+    let db_config_path = common::file_helper::db_yaml_path();
+    let db_to_serialize: DBConfig = Default::default();
+    entity::serializer_helper::write_in_file_if_not_exist(db_config_path, &db_to_serialize).unwrap();
 }
 
 pub fn read_server_config() -> Result<ServerConfig, std::io::Error> {

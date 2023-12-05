@@ -25,6 +25,12 @@ if %errorlevel% neq 0 (
   exit /b 1
 )
 
+cd %DB_PROJ%
+cargo %ACTION% %FLAGS% 
+if %errorlevel% neq 0 (
+  exit /b 1
+)
+
 cd %WEB_PROJ%
 cargo %ACTION% %FLAGS% 
 if %errorlevel% neq 0 (

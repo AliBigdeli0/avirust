@@ -1,3 +1,7 @@
+use std::fs::File;
+use std::io::{Read, Write};
+use std::path::PathBuf;
+use std::io;
 use serde::Deserialize;
 use serde::Serialize;
 pub use serde_json::{from_str, to_string};
@@ -28,6 +32,35 @@ pub fn deserilize_yaml<'a, T>(entity_str: &'a str) -> Result<T, serde_yaml::Erro
     Ok(deser)
 }
 
+pub fn write_in_file_if_not_exist<T>(path: PathBuf, instance: &T) -> Result<(), serde_yaml::Error>
+    where T: ?Sized + Serialize,
+{
+    if !common::file_helper::file_exist(path.clone()) {
+        let serialized_config = serialize_yaml(&instance).unwrap();
+
+        let mut file = File::create(path.clone()).unwrap();
+        let bytes = serialized_config.as_bytes();
+        let _ = file.write(bytes);
+    }
+    Ok(())
+}
+
+enum ReadFromFileErrors {
+    Io(io::Error),
+    Serde(serde_yaml::Error),
+}
+
+pub fn read_from_file<T>(path: PathBuf) -> T
+{
+    let mut file = File::open(path.clone()).unwrap();
+
+    let mut yaml_string: String = String::from("");
+    file.read_to_string(&mut yaml_string).unwrap();
+
+    let instance: T = deserilize_yaml(yaml_string.as_str()).unwrap();
+    instance
+}
+
 #[cfg(test)]
 mod unit_test {
     use super::*;
@@ -48,7 +81,7 @@ mod unit_test {
 
     #[test]
     fn test_serialize_to_string() {
-        let user = UserMock { name: "ali", password: "amir", age: 10, nested: UserNested { id: 10 , string: String::from("...") } };
+        let user = UserMock { name: "ali", password: "amir", age: 10, nested: UserNested { id: 10, string: String::from("...") } };
         let serilizad_data = serialize_json(&user).unwrap();
         assert!(serilizad_data.contains("ali"));
         assert!(serilizad_data.contains("amir"));
