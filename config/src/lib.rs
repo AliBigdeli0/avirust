@@ -4,9 +4,9 @@ use std::{
     fs::File,
     io::Write,
 };
-use std::io::Read;
 use entity::model::server_config::ServerConfig;
 use entity::model::db_config::DBConfig;
+use entity::serializer_helper::read_from_file;
 
 pub fn get_version() -> &'static str {
     "1.0.0"
@@ -37,13 +37,8 @@ pub fn create_db_config_if_not_exist() {
 
 pub fn read_server_config() -> Result<ServerConfig, std::io::Error> {
     let server_config_path = common::file_helper::server_yaml_path();
+    let server_config = read_from_file(server_config_path);
 
-    let mut file = File::open(server_config_path.clone()).unwrap();
-
-    let mut server_config_yaml_string: String = String::from("");
-    let _ = file.read_to_string(&mut server_config_yaml_string).unwrap();
-
-    let server_config: ServerConfig = entity::serializer_helper::deserilize_yaml(&mut server_config_yaml_string).unwrap();
     Ok(server_config)
 }
 

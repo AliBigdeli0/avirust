@@ -55,7 +55,7 @@ copy_linux_libs::
 	$(call copy_libs,$(LINUX_LIBS),$(LINUX_RUST_UP_PATH),$(STD_LIB_SO),$(LINUX_UI_DEBUG_PATH));
 
 build:: copy_linux_libs
-	$(call func_build_cargo,$(PROJ_LIST), build)
+	@cd $(CLIENT_PATH); cargo build
 
 test::
 	$(call func_build_cargo,$(PROJ_LIST), test)
