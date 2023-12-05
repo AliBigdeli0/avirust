@@ -1,9 +1,9 @@
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::PathBuf;
-use std::io;
 use serde::Deserialize;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 pub use serde_json::{from_str, to_string};
 
 pub fn serialize_json<T>(obj: &T) -> Result<String, serde_json::Error> where
@@ -26,14 +26,14 @@ pub fn serialize_yaml<T>(entity: &T) -> Result<String, serde_yaml::Error> where
     Ok(string_item)
 }
 
-pub fn deserilize_yaml<'a, T>(entity_str: &'a str) -> Result<T, serde_yaml::Error> where T: Deserialize<'a>,
+pub fn deserilize_yaml<T>(entity_str: &mut str) -> Result<T, serde_yaml::Error> where T: DeserializeOwned,
 {
-    let deser: T = serde_yaml::from_str(entity_str)?;
+    let deser: T = serde_yaml::from_str(&entity_str)?;
     Ok(deser)
 }
 
 pub fn write_in_file_if_not_exist<T>(path: PathBuf, instance: &T) -> Result<(), serde_yaml::Error>
-    where T: ?Sized + Serialize,
+    where T: ?Sized + Serialize
 {
     if !common::file_helper::file_exist(path.clone()) {
         let serialized_config = serialize_yaml(&instance).unwrap();
@@ -45,19 +45,16 @@ pub fn write_in_file_if_not_exist<T>(path: PathBuf, instance: &T) -> Result<(), 
     Ok(())
 }
 
-enum ReadFromFileErrors {
-    Io(io::Error),
-    Serde(serde_yaml::Error),
-}
 
-pub fn read_from_file<T>(path: PathBuf) -> T
+pub fn read_from_file<T>(path: PathBuf) -> T 
+where T: DeserializeOwned,
 {
     let mut file = File::open(path.clone()).unwrap();
 
-    let mut yaml_string: String = String::from("");
+    let mut  yaml_string: String = String::from("");
     file.read_to_string(&mut yaml_string).unwrap();
 
-    let instance: T = deserilize_yaml(yaml_string.as_str()).unwrap();
+    let instance: T = deserilize_yaml(&mut yaml_string).unwrap();
     instance
 }
 
@@ -65,23 +62,23 @@ pub fn read_from_file<T>(path: PathBuf) -> T
 mod unit_test {
     use super::*;
 
-    #[derive(Serialize, Deserialize)]
+    #[derive(Debug, Serialize, Deserialize)]
     struct UserNested {
         id: i32,
         string: String,
     }
 
-    #[derive(Serialize, Deserialize)]
-    struct UserMock<'a> {
-        name: &'a str,
-        password: &'a str,
+    #[derive(Debug, Serialize, Deserialize)]
+    struct UserMock {
+        name: String,
+        password: String,
         age: i32,
         nested: UserNested,
     }
 
     #[test]
     fn test_serialize_to_string() {
-        let user = UserMock { name: "ali", password: "amir", age: 10, nested: UserNested { id: 10, string: String::from("...") } };
+        let user = UserMock { name: "ali".to_string(), password: "amir".to_string(), age: 10, nested: UserNested { id: 10, string: String::from("...") } };
         let serilizad_data = serialize_json(&user).unwrap();
         assert!(serilizad_data.contains("ali"));
         assert!(serilizad_data.contains("amir"));
@@ -90,7 +87,7 @@ mod unit_test {
 
     #[test]
     fn test_deserialize_from_string() {
-        let user = UserMock { name: "hani", password: "madar", age: 20, nested: UserNested { id: 10, string: String::from("...") } };
+        let user = UserMock { name: "hani".to_string(), password: "madar".to_string(), age: 20, nested: UserNested { id: 10, string: String::from("...") } };
 
         let serialized_data = serialize_json(&user).unwrap();
         let deserliazlied_user: UserMock = deserilize_json(&serialized_data).unwrap();
@@ -102,12 +99,12 @@ mod unit_test {
 
     #[test]
     fn yaml_serialize_string() {
-        let user = UserMock { name: "ali", password: "amir", age: 10, nested: UserNested { id: 122, string: String::from("...") } };
-        let serialized_data = serialize_yaml(&user).unwrap();
+        let user = UserMock { name: "ali".to_string(), password: "amir".to_string(), age: 10, nested: UserNested { id: 122, string: String::from("...") } };
+        let mut serialized_data = serialize_yaml(&user).unwrap();
 
-        println!("{}", serialized_data);
+        println!("{}", &mut serialized_data);
 
-        let deserialized_data: UserMock = deserilize_yaml(&serialized_data).unwrap();
+        let deserialized_data: UserMock = deserilize_yaml(&mut serialized_data).unwrap();
 
         assert_eq!(deserialized_data.name, user.name);
         assert_eq!(deserialized_data.nested.id, user.nested.id);

@@ -43,7 +43,7 @@ pub fn read_server_config() -> Result<ServerConfig, std::io::Error> {
     let mut server_config_yaml_string: String = String::from("");
     let _ = file.read_to_string(&mut server_config_yaml_string).unwrap();
 
-    let server_config: ServerConfig = entity::serializer_helper::deserilize_yaml(server_config_yaml_string.as_str()).unwrap();
+    let server_config: ServerConfig = entity::serializer_helper::deserilize_yaml(&mut server_config_yaml_string).unwrap();
     Ok(server_config)
 }
 

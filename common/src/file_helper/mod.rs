@@ -1,6 +1,6 @@
 use std::env::current_dir;
 use std::fs;
-use std::path::{PathBuf};
+use std::path::PathBuf;
 
 pub fn current_path() -> PathBuf {
     current_dir().unwrap()

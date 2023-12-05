@@ -3,7 +3,7 @@ mod controller;
 #[macro_use] extern crate rocket;
 
 use std::net::IpAddr;
-use rocket::config::{Config};
+use rocket::config::Config;
 use rocket::fs::FileServer;
 use std::str::FromStr;
 
