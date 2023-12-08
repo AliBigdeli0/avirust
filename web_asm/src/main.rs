@@ -1,3 +1,3 @@
 fn main() {
-    println!("not implemented!!!!");
+    panic!("not implemented!!!!");
 }

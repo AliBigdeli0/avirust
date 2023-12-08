@@ -1,7 +1,7 @@
 
 [workspace]
 resolver = "2"
-default-members = ["client"]
+default-members = ["client", "ui"]
 
 members=[
     "common",

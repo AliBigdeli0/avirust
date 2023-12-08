@@ -10,7 +10,9 @@ async fn main() {
 }
 
 fn change_working_directory() {
-    
+    let current_path = common::file_helper::current_path();
+    std::env::set_current_dir(current_path.clone()).unwrap();
+    println!("current directory is: {:?}", current_path);
 }
 
 fn print_info() {
