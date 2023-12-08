@@ -3,6 +3,7 @@ pub fn get_lib_version() -> &'static str {
 }
 
 pub mod file_helper;
+pub mod time_helper;
 
 #[cfg(test)]
 mod tests {
