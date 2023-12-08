@@ -9,7 +9,5 @@ inherits="release"
 [lib]
 crate-type=["dylib"]
 
-[dependencies]
-
 [features]
 no_std=[]

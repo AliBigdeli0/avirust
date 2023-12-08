@@ -7,7 +7,7 @@ edition = "2021"
 inherits="release"
 
 [lib]
-crate-type = ["rlib","dylib"]
+crate-type = ["dylib"]
 
 [dependencies]
 common = { version = "0.1.0", path = "../common" }

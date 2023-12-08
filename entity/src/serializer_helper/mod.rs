@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::PathBuf;
+use bson::Bson;
 use serde::Deserialize;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
@@ -26,11 +27,31 @@ pub fn serialize_yaml<T>(entity: &T) -> Result<String, serde_yaml::Error> where
     Ok(string_item)
 }
 
-pub fn deserilize_yaml<T>(entity_str: &mut str) -> Result<T, serde_yaml::Error> where T: DeserializeOwned,
+pub fn deserilize_yaml<T>(entity_str: &mut str) -> Result<T, serde_yaml::Error>
+    where T: DeserializeOwned,
 {
     let deser: T = serde_yaml::from_str(&entity_str)?;
     Ok(deser)
 }
+
+pub fn serialize_bson<T>(entity: &T) -> Result<Bson, bson::ser::Error>
+    where T:  ?Sized + Serialize
+{
+   let obj = bson::to_bson(entity)?;
+   Ok(obj)
+}
+
+pub fn deserilize_bson<T>(entity_bson: Bson) -> Result<T, bson::de::Error>
+    where T: DeserializeOwned,
+{
+    let entity: T = match bson::from_bson(entity_bson) {
+        Ok(doc)=> doc, 
+        Err(err) => return Err(err)
+    };
+
+    Ok(entity)
+}
+
 
 pub fn write_in_file_if_not_exist<T>(path: PathBuf, instance: &T) -> Result<(), serde_yaml::Error>
     where T: ?Sized + Serialize
@@ -76,6 +97,12 @@ mod unit_test {
         nested: UserNested,
     }
 
+    #[derive(Debug, Serialize, Deserialize)]
+    struct BsonUserMock {
+        name: String,
+        password: String
+    }
+
     #[test]
     fn test_serialize_to_string() {
         let user = UserMock { name: "ali".to_string(), password: "amir".to_string(), age: 10, nested: UserNested { id: 10, string: String::from("...") } };
@@ -101,12 +128,20 @@ mod unit_test {
     fn yaml_serialize_string() {
         let user = UserMock { name: "ali".to_string(), password: "amir".to_string(), age: 10, nested: UserNested { id: 122, string: String::from("...") } };
         let mut serialized_data = serialize_yaml(&user).unwrap();
-
-        println!("{}", &mut serialized_data);
-
         let deserialized_data: UserMock = deserilize_yaml(&mut serialized_data).unwrap();
 
         assert_eq!(deserialized_data.name, user.name);
         assert_eq!(deserialized_data.nested.id, user.nested.id);
+    }
+
+    #[test]
+    fn bson_seralization() {
+        let user = BsonUserMock { name: "ali".to_string(), password: "amir".to_string()};
+        let serialized_user = serialize_bson(&user).unwrap();
+        println!("the data is: {}", serialized_user);
+        let user_back = deserilize_bson::<BsonUserMock>(serialized_user).unwrap();
+
+        assert_eq!(user_back.name,"ali");
+        assert_eq!(user_back.password,"amir");
     }
 }
