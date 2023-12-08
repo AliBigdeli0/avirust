@@ -3,13 +3,15 @@
 CLIENT_PATH=$(PWD)/client
 UI_PATH=$(PWD)/ui
 COMMON_PATH=$(PWD)/common
+
+LINUX_ROOT_DEBUG_PATH=$(PWD)/target/debug
 LINUX_LIBS=$(CLIENT_PATH)/target/linux_libs
 LINUX_RUST_UP_PATH=/home/mehran/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib
 LINUX_DEBUG_PATH=$(LINUX_LIBS)/../debug
 LINUX_UI_DEBUG_PATH=$(UI_PATH)/target/debug
 LINUX_STATIC_DEBUG=$(LINUX_DEBUG_PATH)/static
 
-STD_LIB_SO:=libstd-fcf70ff533b679b2.so
+STD_LIB_SO:=libstd-b149a04e58514815.so
 STD_LIB_DLL:=std-02223d1a8ebc115e.dll
 
 #windows
@@ -21,11 +23,11 @@ WIN_TARGET:= --target x86_64-pc-windows-gnu --release
 
 PROJ_LIST:= $(PWD)/common $(PWD)/config $(PWD)/logger $(PWD)/entity $(PWD)/db $(PWD)/web  $(PWD)/ui $(PWD)/client
 
-.PHONY: build test
+.PHONY: build_all
 ################################
 define func_build_cargo
 	@for item in $1; do \
-		cargo $2 $3 --manifest-path $$item/Cargo.toml ; \
+		 RUSTFLAGS='-C prefer-dynamic' cargo $2 $3 --manifest-path $$item/Cargo.toml ; \
 		if [ $$? -ne 0 ]; then \
 			exit $$?; \
 		fi \
@@ -42,6 +44,11 @@ endef
 
 ###############################
 ## original status
+
+build_all:: copy_linux_libs
+	@RUSTFLAGS='-C prefer-dynamic' cargo test
+	@RUSTFLAGS='-C prefer-dynamic' cargo build 
+
 run:: build test copy_www_files
 	@echo "======================================================"
 	@cd $(LINUX_DEBUG_PATH);cargo run --manifest-path $(CLIENT_PATH)/Cargo.toml
@@ -53,6 +60,7 @@ run_ui:: build test copy_www_files
 copy_linux_libs::
 	$(call copy_libs,$(LINUX_LIBS),$(LINUX_RUST_UP_PATH),$(STD_LIB_SO),$(LINUX_DEBUG_PATH));
 	$(call copy_libs,$(LINUX_LIBS),$(LINUX_RUST_UP_PATH),$(STD_LIB_SO),$(LINUX_UI_DEBUG_PATH));
+	$(call copy_libs,$(LINUX_LIBS),$(LINUX_RUST_UP_PATH),$(STD_LIB_SO),$(LINUX_ROOT_DEBUG_PATH));
 
 build:: copy_linux_libs
 	$(call func_build_cargo,$(PROJ_LIST), build)
@@ -77,7 +85,6 @@ copy_www_files_win::
 	@rm -rf $(WIN_STATIC_RELEASE)
 	@mkdir -p $(WIN_STATIC_RELEASE)
 	@cp -r $(PWD)/client/static/* $(WIN_STATIC_RELEASE)
-
 
 copy_win_libs::
 	$(call copy_libs,$(WIN_LIBS),$(WIN_RUST_UP_PATH),$(STD_LIB_DLL),$(WIN_RELEASE_PATH));

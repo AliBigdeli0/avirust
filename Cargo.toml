@@ -1,0 +1,17 @@
+
+[workspace]
+resolver = "2"
+
+members=[
+    "common",
+    "entity",
+    "config",
+    "logger",
+    "db",
+    "web",
+    "ui",
+    "client",
+]
+
+[profile.win]
+inherits="release"

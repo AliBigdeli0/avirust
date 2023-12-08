@@ -3,11 +3,8 @@ name = "web"
 version = "0.1.0"
 edition = "2021"
 
-[profile.win]
-inherits="release"
-
 [lib]
-crate-type = ["rlib","dylib"]
+crate-type = ["dylib"]
 
 [dependencies]
 config = { version = "0.1.0", path = "../config" }
