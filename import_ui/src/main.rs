@@ -1,3 +1,6 @@
+extern crate logger;
+extern crate db;
+
 fn main() {
     logger::init();
     logger::info("import ui has started..."); 

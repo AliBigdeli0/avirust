@@ -1,3 +1,9 @@
+extern crate common;
+extern crate logger; 
+extern crate web; 
+extern crate config;
+extern crate db; 
+extern crate entity; 
 
 #[tokio::main]
 async fn main() {

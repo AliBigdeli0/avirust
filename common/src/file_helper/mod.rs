@@ -48,7 +48,7 @@ pub fn file_exist(file_path: PathBuf) -> bool {
 pub fn change_working_directory() {
     let current_path = current_path();
     std::env::set_current_dir(current_path.clone()).unwrap();
-    println!("[web] working directory is: {:?}", current_path);
+    println!("working directory is: {:?}", current_path);
 }
 
 #[cfg(test)]

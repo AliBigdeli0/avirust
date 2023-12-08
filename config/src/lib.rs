@@ -1,5 +1,7 @@
 const CONFIG_FILE_CONTENT: &str = include_str!("../resources/log4rs.yml");
 
+extern crate entity;
+
 use std::{
     fs::File,
     io::Write,
@@ -23,6 +25,7 @@ pub fn init_config_yaml() {
 }
 
 pub fn create_server_config_if_not_exist() {
+    
     let server_config_path = common::file_helper::server_yaml_path();
     let object_to_serliaze: ServerConfig = Default::default();
 

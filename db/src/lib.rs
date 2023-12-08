@@ -1,3 +1,5 @@
+extern crate config;
+
 use config::create_db_config_if_not_exist;
 
 pub fn get_db_version() -> &'static str {

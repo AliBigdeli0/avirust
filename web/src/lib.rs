@@ -1,6 +1,9 @@
 mod controller;
 
 #[macro_use] extern crate rocket;
+extern crate logger;
+extern crate config;
+extern crate entity;
 
 use std::net::IpAddr;
 use rocket::config::Config;
