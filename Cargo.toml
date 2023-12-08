@@ -1,6 +1,7 @@
 
 [workspace]
 resolver = "2"
+default-members = ["client"]
 
 members=[
     "common",
@@ -11,6 +12,7 @@ members=[
     "web",
     "ui",
     "client",
+    "web_asm",
 ]
 
 [profile.win]

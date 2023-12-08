@@ -45,7 +45,7 @@ endef
 ###############################
 ## original status
 
-build_all:: copy_linux_libs
+build_all:: copy_linux_libs copy_www_files
 	@RUSTFLAGS='-C prefer-dynamic' cargo test
 	@RUSTFLAGS='-C prefer-dynamic' cargo build 
 
@@ -78,6 +78,10 @@ copy_www_files::
 	@rm -rf $(LINUX_STATIC_DEBUG)
 	@mkdir -p $(LINUX_STATIC_DEBUG)
 	@cp -r $(PWD)/client/static/* $(LINUX_STATIC_DEBUG)
+	@rm -rf $(LINUX_ROOT_DEBUG_PATH)/static
+	@mkdir -p $(LINUX_ROOT_DEBUG_PATH)/static
+	@cp -r $(PWD)/client/static/* $(LINUX_ROOT_DEBUG_PATH)/static
+
 ################################
 # windows generator
 

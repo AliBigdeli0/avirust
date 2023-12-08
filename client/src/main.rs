@@ -1,11 +1,16 @@
 
 #[tokio::main]
 async fn main() {
+    change_working_directory();
     logger::init();
     print_info();
 
     web::init();
     web::run_wait().await;
+}
+
+fn change_working_directory() {
+    
 }
 
 fn print_info() {
