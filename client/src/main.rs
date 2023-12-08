@@ -3,6 +3,7 @@
 async fn main() {
     common::file_helper::change_working_directory();
     logger::init();
+
     print_info();
 
     web::init();
