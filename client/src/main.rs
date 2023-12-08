@@ -1,18 +1,12 @@
 
 #[tokio::main]
 async fn main() {
-    change_working_directory();
+    common::file_helper::change_working_directory();
     logger::init();
     print_info();
 
     web::init();
     web::run_wait().await;
-}
-
-fn change_working_directory() {
-    let current_path = common::file_helper::current_path();
-    std::env::set_current_dir(current_path.clone()).unwrap();
-    println!("current directory is: {:?}", current_path);
 }
 
 fn print_info() {

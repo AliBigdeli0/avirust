@@ -27,7 +27,7 @@ PROJ_LIST:= $(PWD)/common $(PWD)/config $(PWD)/logger $(PWD)/entity $(PWD)/db $(
 ################################
 define func_build_cargo
 	@for item in $1; do \
-		 RUSTFLAGS='-C prefer-dynamic' cargo $2 $3 --manifest-path $$item/Cargo.toml ; \
+		RUSTFLAGS='-C prefer-dynamic' cargo $2 $3 --manifest-path $$item/Cargo.toml ; \
 		if [ $$? -ne 0 ]; then \
 			exit $$?; \
 		fi \
@@ -47,7 +47,7 @@ endef
 
 build_all:: copy_linux_libs copy_www_files
 	@RUSTFLAGS='-C prefer-dynamic' cargo test
-	@RUSTFLAGS='-C prefer-dynamic' cargo build 
+	@RUSTFLAGS='-C prefer-dynamic' cargo build
 
 run:: build test copy_www_files
 	@echo "======================================================"
