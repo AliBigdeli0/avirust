@@ -10,15 +10,13 @@ pub fn read_excel_info(file_path: Box<&str>, excel_obj: &mut ExcelInfo) -> Resul
     let mut workbook:   Xlsx<_> = open_workbook(*file_path)?; 
     
     if let Some(Ok(range)) =  workbook.worksheet_range_at(0) {
-        for row in range.rows() {
-            
+        if let Some(row) = range.rows().next() {
             for (index, column) in row.iter().enumerate() {
                 if index == DATE_COLUMN_INDEX ||  index == TIME_COLUMN_INDEX { 
                     continue;
                 }
                 excel_obj.append(column.to_string(), String::from(""));
             }
-            break;
         }
     }
 
