@@ -51,6 +51,48 @@ pub fn file_exist(file_path: PathBuf) -> bool {
     }
 }
 
+#[derive(Debug)]
+pub enum AllFilesInDirectoryError {
+    IOError(std::io::Error),
+    STDError(String)
+}
+
+pub fn all_files_in_directory(directory_path: &PathBuf, extention: Option<&str>) -> Result<Vec<PathBuf>,std::io::Error> {
+    let mut list_files: Vec<PathBuf> = vec![];
+    let meta_data = fs::metadata(directory_path);
+    if !meta_data.is_ok() {
+        return Err(meta_data.err().unwrap());
+    }    
+
+    let fs_data = meta_data.ok().unwrap();
+    if !fs_data.is_dir()  {
+        return Ok(list_files);
+    }
+
+    let entries = fs::read_dir(directory_path).unwrap();
+
+    for entry in entries {
+        let entry = entry.unwrap(); 
+        let file_path = entry.path();
+
+        if file_path.is_file() {
+            match extention {
+                Some(value)=> {
+                    let file_ext = file_path.extension().unwrap().to_str().unwrap();
+                    if  file_ext == value{
+                        list_files.push(file_path)
+                    }
+                },
+                None  => {
+                    list_files.push(file_path)
+                }
+            }
+        }
+    }
+
+    Ok(list_files)
+}
+
 pub fn change_working_directory() {
     let current_path = current_path();
     std::env::set_current_dir(current_path.clone()).unwrap();
