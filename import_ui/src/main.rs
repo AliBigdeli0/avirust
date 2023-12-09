@@ -8,7 +8,7 @@ async fn main() {
 
     print_info();
 
-    db::init().await;
+    db::mongo::init().await;
 
     logger::info("import ui has done!");
 }

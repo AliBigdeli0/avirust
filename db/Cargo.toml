@@ -8,5 +8,9 @@ crate-type = ["rlib","dylib"]
 
 [dependencies]
 bson = "2.7.0"
+chrono = "0.4.31"
+common = { version = "0.1.0", path = "../common" }
 config = { version = "0.1.0", path = "../config" }
+entity = { version = "0.1.0", path = "../entity" }
+logger = { version = "0.1.0", path = "../logger" }
 mongodb = "2.7.1"
