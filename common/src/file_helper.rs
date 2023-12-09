@@ -12,6 +12,12 @@ pub fn config_path() -> PathBuf {
     buff
 }
 
+pub fn import_path() -> PathBuf {
+    let import_buff = current_path().join("import");
+    create_dir_if_not_exist(import_buff.as_os_str().to_str().unwrap()).unwrap();
+    import_buff
+}
+
 pub fn log4rs_yaml_path() -> PathBuf {
     config_path().join("log4rs.yaml")
 }

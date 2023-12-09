@@ -1,20 +1,13 @@
+use import_ui::start;
+
 extern crate logger;
 extern crate db;
 
+mod import_ui;
+
 #[tokio::main]
 async fn main() {
-    logger::init();
-    logger::info("import ui has started..."); 
-
-    print_info();
-
-    db::mongo::init().await;
-
-    logger::info("import ui has done!");
+    start().await;    
 }
 
-fn print_info() {
-    logger::info(&format!("logger version is: {}", logger::get_version()));
-    logger::info(&format!("logger version is: {}", db::get_db_version()));
-}
 
