@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 logger = { version = "0.1.0", path = "../logger" }
+common = { version = "0.1.0", path = "../common" }
 db = { version = "0.1.0", path = "../db" }
 tokio = "1.35.0"
 argparse = "0.2.2"
-common = { version = "0.1.0", path = "../common" }

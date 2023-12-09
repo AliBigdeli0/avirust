@@ -10,6 +10,7 @@ pub async fn init() {
     check_db_exist(config).await.expect("error in db connection check! please check the database!");
 }
 
+
 async fn create_db(config: entity::model::db_config::DBConfig) -> Result<Box<(Client, Database)>, Error> {
     let client_options = Box::new(ClientOptions::parse(config.connection_string).await?);
 
