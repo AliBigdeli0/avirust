@@ -1,13 +1,14 @@
 extern crate logger;
 extern crate db;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     logger::init();
     logger::info("import ui has started..."); 
 
     print_info();
 
-    db::init();
+    db::init().await;
 
     logger::info("import ui has done!");
 }

@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 logger = { version = "0.1.0", path = "../logger" }
 db = { version = "0.1.0", path = "../db" }
+tokio = "1.35.0"

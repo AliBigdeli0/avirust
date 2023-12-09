@@ -45,6 +45,13 @@ pub fn read_server_config() -> Result<ServerConfig, std::io::Error> {
     Ok(server_config)
 }
 
+pub fn read_db_config() -> Result<DBConfig, std::io::Error> {
+    let db_config_path = common::file_helper::db_yaml_path();
+    let db_config = read_from_file(db_config_path);
+
+    Ok(db_config)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

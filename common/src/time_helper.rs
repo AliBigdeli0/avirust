@@ -26,8 +26,7 @@ mod test_time_helper {
     pub fn formatted_time_check() {
         let now = get_now_utc();
         let time_str = get_bson_time(now);
-        println!("{}", time_str);
         assert!(time_str.contains("Z"));
-        assert!(!time_str.contains("-"));
+        assert!(time_str.contains("-"));
     }
 }

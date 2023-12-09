@@ -9,7 +9,7 @@ pub struct DBConfig {
 impl Default for DBConfig {
     fn default() -> Self {
         Self {
-            connection_string: String::from("127.0.0.1:27017"), 
+            connection_string: String::from("mongodb://127.0.0.1:27017"), 
             db_name: String::from("AVIDb"),
         }
     }
