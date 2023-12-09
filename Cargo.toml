@@ -1,7 +1,7 @@
 
 [workspace]
 resolver = "2"
-default-members = ["client"]
+default-members = ["import_ui"]
 
 members=[
     "common",
@@ -13,6 +13,7 @@ members=[
     "ui",
     "client",
     "web_asm",
+    "excel",
     "import_ui",
 ]
 

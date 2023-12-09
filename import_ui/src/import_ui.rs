@@ -13,11 +13,9 @@ pub async fn start(parser_result: ParserResult) {
     if parser_result.check_file {
         logger::info("check file names has started"); 
         let import_path = common::file_helper::import_path();
-        let file_list = common::file_helper::all_files_in_directory(&import_path, None).unwrap();
+        let file_list = common::file_helper::all_files_in_directory(&import_path, Some("xlsx")).unwrap();
         
-        for file in file_list {
-            println!("the file name is: {:?}" , file);
-        }
+        logger::info(&format!("number of files that are selected {}", file_list.len()));
 
         // break control
         std::process::exit(0);
@@ -35,5 +33,5 @@ fn init_screen() -> std::io::Result<()>{
 
 fn print_info() {
     logger::info(&format!("logger version is: {}", logger::get_version()));
-    logger::info(&format!("logger version is: {}", db::get_db_version()))
+    logger::info(&format!("logger version is: {}", db::get_db_version()));
 }
