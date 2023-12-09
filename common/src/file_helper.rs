@@ -30,6 +30,10 @@ pub fn db_yaml_path()-> PathBuf {
     config_path().join("db.yaml")
 }
 
+pub fn generate_yaml_extention(file_name: String) -> String {
+    format!("{}.yaml",file_name.as_str())
+}
+
 pub fn log_file_path() -> PathBuf {
     let buff = current_path().join("logs");
     create_dir_if_not_exist(buff.as_os_str().to_str().unwrap()).unwrap();
@@ -134,5 +138,11 @@ mod unit_tests {
         let config_path_str = String::from(c_buff.to_str().unwrap());
         println!("{}", config_path_str);
         assert!(config_path_str.ends_with("config"))
+    }
+
+    #[test]
+    fn generate_yaml() {
+        let file_name = generate_yaml_extention(String::from("ali"));
+        assert!(file_name.ends_with(".yaml"))
     }
 }

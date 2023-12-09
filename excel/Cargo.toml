@@ -7,3 +7,5 @@ edition = "2021"
 crate-type = ["rlib","dylib"]
 
 [dependencies]
+calamine = "0.22.1"
+entity = { version = "0.1.0", path = "../entity" }

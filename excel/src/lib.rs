@@ -2,6 +2,8 @@ pub fn get_excel_version() -> String {
     String::from("1.0.0")
 }
 
+pub mod excel_helper;
+
 #[cfg(test)]
 mod tests {
     use super::*;
