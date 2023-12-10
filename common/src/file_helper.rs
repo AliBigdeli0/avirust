@@ -2,6 +2,9 @@ use std::env::current_dir;
 use std::fs;
 use std::path::PathBuf;
 
+pub const EXCEL_FILE_EXTENSION: &str = "xls"; 
+pub const YAML_FILE_EXTENSION: &str = "yaml";
+
 pub fn current_path() -> PathBuf {
     current_dir().unwrap()
 }
@@ -31,7 +34,7 @@ pub fn db_yaml_path()-> PathBuf {
 }
 
 pub fn generate_yaml_extention(file_name: String) -> String {
-    format!("{}.yaml",file_name.as_str())
+    format!("{}.{}",file_name.as_str(), YAML_FILE_EXTENSION)
 }
 
 pub fn log_file_path() -> PathBuf {
@@ -83,7 +86,7 @@ pub fn all_files_in_directory(directory_path: &PathBuf, extention: Option<&str>)
             match extention {
                 Some(value)=> {
                     let file_ext = file_path.extension().unwrap().to_str().unwrap();
-                    if  file_ext == value{
+                    if  file_ext.to_lowercase() == value.to_lowercase(){
                         list_files.push(file_path)
                     }
                 },

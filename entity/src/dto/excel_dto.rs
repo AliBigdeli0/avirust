@@ -32,6 +32,7 @@ impl ExcelColumnInfo {
 #[derive(Debug,Deserialize, Serialize)]
 pub struct  ExcelInfo {
     well_id: String,
+    well_name: String,
     list_items: Vec<ExcelColumnInfo>,
 }
 
@@ -39,6 +40,7 @@ impl ExcelInfo {
     pub fn new () -> Self {
         Self { 
             well_id: String::from(""), 
+            well_name: String::from(""),
             list_items: vec![] 
         }
     }
@@ -64,11 +66,20 @@ impl ExcelInfo {
     }
 
     pub fn write_into_file(&mut self) {
-        let excel_file_name = common::file_helper::generate_yaml_extention(self.get_well_id().to_string());
+        let excel_file_name = common::file_helper::generate_yaml_extention(format!("{}_{}", self.well_name, self.well_id));
         let excel_file_path_buff = PathBuf::from(&excel_file_name);
-        let excel_full_path = common::file_helper::config_path().join(excel_file_path_buff);
+        let excel_full_path = common::file_helper::import_path().join(excel_file_path_buff);
         write_in_file_if_not_exist(excel_full_path, &self).unwrap();
     }
+
+    pub fn set_well_name(&mut self, well_name: &str) {
+        self.well_name = well_name.to_string();
+    }
+
+    pub fn well_name(&self) -> &str {
+        self.well_name.as_ref()
+    }
+
 }
 
 
