@@ -5,6 +5,7 @@ pub fn get_lib_version() -> &'static str {
 pub mod file_helper;
 pub mod time_helper;
 pub mod hash_helper;
+pub mod print_helper;
 
 #[cfg(test)]
 mod tests {

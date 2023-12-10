@@ -12,7 +12,7 @@ use super::super::serializer_helper::write_in_file_if_not_exist;
 pub struct ExcelColumnInfo {
     pub column: String, 
     pub code : String,
-    #[serde(skip_serializing)]
+    #[serde(skip_serializing, skip_deserializing)]
     pub hash: u64
 }
 
@@ -33,7 +33,7 @@ impl ExcelColumnInfo {
 pub struct  ExcelInfo {
     well_id: String,
     well_name: String,
-    list_items: Vec<ExcelColumnInfo>,
+    pub list_items: Vec<ExcelColumnInfo>,
 }
 
 impl ExcelInfo {
@@ -76,7 +76,7 @@ impl ExcelInfo {
         self.well_name = well_name.to_string();
     }
 
-    pub fn well_name(&self) -> &str {
+    pub fn get_well_name(&self) -> &str {
         self.well_name.as_ref()
     }
 
