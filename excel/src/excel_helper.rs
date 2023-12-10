@@ -5,7 +5,6 @@ use entity::dto::excel_dto::ExcelInfo;
 const DATE_COLUMN_INDEX: usize= 0; 
 const TIME_COLUMN_INDEX: usize= 1;
 
-
 pub fn read_excel_info(file_path: Box<&str>, excel_obj: &mut ExcelInfo) -> Result<(),Error>{
     let mut workbook:   Xls<_> = open_workbook(*file_path)?; 
     

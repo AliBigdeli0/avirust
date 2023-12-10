@@ -4,7 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
-crate-type = ["rlib","dylib"]
+crate-type = ["rlib"]
+
+[features]
+no_std=[]
 
 [dependencies]
 calamine = "0.22.1"

@@ -1,3 +1,5 @@
+extern crate log;
+
 use log::{info, error};
 
 pub fn get_version() -> String {
