@@ -5,7 +5,7 @@ use base64::engine::general_purpose;
 use bson::{doc, oid::ObjectId, Binary, DateTime as BsonDateTime};
 use chrono::{Utc, Datelike, DateTime as ChronoDateTime};
 use chrono::prelude::*;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 pub const WELL_COLLECTION_NAME:&str = "wells";
 pub const START_DATE: i32 = 2000;
@@ -36,7 +36,7 @@ pub struct Well {
     pub is_active: bool,
 }
 
-#[derive(Debug,Deserialize)]
+#[derive(Debug,Deserialize, Serialize)]
 #[allow(non_snake_case,dead_code)]
 pub struct TimeData {
     _id:ObjectId, 

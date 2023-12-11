@@ -1,4 +1,4 @@
-use entity::{model::db::*, dto::excel_dto::ExcelInfo};
+use entity::{model::db::*, dto::excel_dto::ExcelInfo, serializer_helper::serialize_bson};
 use mongodb:: {Client, error::Error, options::ClientOptions, Database, bson::doc, Cursor};
 
 use config::create_db_config_if_not_exist;
@@ -51,9 +51,16 @@ pub async fn read_all_wells<'a>(database: Database) -> Result<&'a Vec<Well>, Err
     read_all_from_db::<Well>(database, WELL_COLLECTION_NAME).await
 }
 
-pub async fn insert_time_from_excel(_: Database,excel_data : ExcelInfo) {
+pub async fn insert_time_from_excel(database: Database,excel_data : ExcelInfo) ->  Result<(), Error>{
     let hash = &excel_data.to_hash();
-    let _ = TimeData::new_hash(excel_data.date, hash);
+    let time_data = &TimeData::new_hash(excel_data.date, hash);
+
+    let column_name= TimeData::generate_collection_name(excel_data.get_well_id(), excel_data.date);
+    
+    let bson_data = serialize_bson(&time_data)?;
+    database.collection(&column_name).insert_one(bson_data, None).await?;
+
+    Ok(())
 }
 
 pub async fn read_from_time_data<'a>(database: Database, collection_name: &'a str) -> Result<&'a Vec<TimeData>, Error> {
