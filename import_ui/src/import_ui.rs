@@ -25,8 +25,14 @@ pub async fn start(parser_result: ParserResult) {
 
     //test read from database
     let collection_name= "c_2345415781_23_10_23";
-    let time_list = db::mongo::read_from_time_data(database.clone(), collection_name).await.unwrap();
-    println!("{:?}",time_list.get(0).unwrap().data_to_hash());
+    let _ = db::mongo::read_from_time_data(database.clone(), collection_name).await.unwrap();
+    // let hash_list = time_list.get(0).unwrap().data_to_hash();
+    // let mut sorted_entries: Vec<_> = hash_list.into_iter().collect();
+    // sorted_entries.sort_by(|(a,_), (b,_)| a.cmp(&b));
+
+    // for item in sorted_entries {
+    //     println!("{}:{}", item.0, item.1)
+    // }
 
     // if check file switched
     if parser_result.check_file {

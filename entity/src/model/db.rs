@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::io::{Write, self};
 
 use base64::Engine;
 use base64::engine::general_purpose;
@@ -71,14 +70,12 @@ impl TimeData {
 
 
     pub fn data_to_hash(&self)-> HashMap<String, String> {
-        //byte as a writer
-        let mut writer = std::io::BufWriter::new(std::io::stdout());
-        writer.write_all(&self.data.bytes).unwrap();
+        // let mut memory_buffer :Vec<u8> = Vec::new();
+        // memory_buffer.write_all(&self.data.bytes).unwrap();
         
-        //to hash
-        let mut reader_buffer = io::BufReader::new(writer.buffer());
-        let hash = super::super::serializer_helper::fast_deserialize_dic(&mut reader_buffer).unwrap();
-
+        // let mut reader_buffer = io::BufReader::new(memory_buffer.as_slice());
+        let hash = super::super::serializer_helper::fast_deserialize_dic(&self.data.bytes).unwrap();
+        
         hash
     }
 }

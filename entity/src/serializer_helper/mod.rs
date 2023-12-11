@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::{Read, Write};
+use std::io::{Read, Write, BufReader};
 use std::path::PathBuf;
 use bson::Bson;
 use serde::Deserialize;
@@ -81,46 +81,46 @@ where T: DeserializeOwned,
     instance
 }
 
-pub fn fast_serialize_dic<W: Write>(dictionary: &HashMap<&str, &str>, stream: &mut W) -> std::io::Result<()> {
-    let mut writer = std::io::BufWriter::new(stream);
+pub fn fast_serialize_dic<'a>(dictionary: HashMap<String, String>) -> std::io::Result<Vec<u8>> {
+    let mut writer_buffer :Vec<u8>= Vec::new();
 
-    // write header
-    writer.write_all(&(dictionary.len() as u32).to_le_bytes())?;
+    {
+        let mut writer = std::io::BufWriter::new(&mut writer_buffer);
 
-    for (key, value) in dictionary {
-        // write key
-        writer.write_all(&(key.len() as u32).to_le_bytes())?;
-        writer.write_all(key.as_bytes())?;
+        // write header
+        writer.write_all(&(dictionary.len() as u32).to_le_bytes())?;
 
-        // write value
-        writer.write_all(&(value.len() as u32).to_le_bytes())?;
-        writer.write_all(value.as_bytes())?;
-    }
+        for (key, value) in dictionary {
+            // write key
+            writer.write_all(&(key.len() as i8).to_le_bytes())?;
+            writer.write_all(key.as_bytes())?;
 
-    writer.flush()?;
+            // write value
+            writer.write_all(&(value.len() as i8).to_le_bytes())?;
+            writer.write_all(value.as_bytes())?;
+        }
 
-    Ok(())
+        writer.flush()?;
+    }    
+
+    Ok(writer_buffer.clone())
 }
 
-pub fn fast_deserialize_dic(reader: &mut std::io::BufReader<&[u8]>) -> std::io::Result<HashMap<String, String>> {
-    let mut dictionary = std::collections::HashMap::new();
-
-    // let mut counter: [u8; 4] = [0; 4];
+pub fn fast_deserialize_dic(bytes: &Vec<u8>) -> std::io::Result<HashMap<String, String>> {
+    let mut reader: std::io::BufReader<&[u8]> = BufReader::new(bytes.as_slice());
+    let mut ret_map = std::collections::HashMap::new();
     {
-        // reader.read(&mut counter).unwrap();
-        let count = reverse_bytes(reader);
-
+        let count = reverse_bytes(&mut reader);
+        
         for _ in 0..count {
-            let key = extract_data(reader);
-            let value = extract_data(reader);
-
-            println!("key: {:?}, value: {:?}", key, value);
+            let key = extract_data(&mut reader);
+            let value = extract_data(&mut reader);
             
-            dictionary.insert(key, value);
+            ret_map.insert(key, value);
         }
     }
 
-    Ok(dictionary)
+    Ok(ret_map)
 }
 
 fn extract_data(reader: &mut std::io::BufReader<&[u8]>) -> String {
@@ -128,27 +128,17 @@ fn extract_data(reader: &mut std::io::BufReader<&[u8]>) -> String {
     reader.read_exact(&mut buf_len).unwrap();
     let data_len = buf_len[0] as usize;
 
-    let mut data_bytes = vec![0; data_len];
+    let mut data_bytes = vec![0; data_len as usize];
     reader.read_exact(&mut data_bytes).unwrap();
 
     String::from_utf8(data_bytes).unwrap()
 }
 
 fn reverse_bytes(reader: &mut std::io::BufReader<&[u8]>) -> u32 {
-    // for i in 0..4 {
-    //     counter.swap(0, 3 - i);
-    // }
     let mut buf_len= [0; 4];
     reader.read_exact(&mut buf_len).unwrap();
-    // buf_len[0] as u32
-    u32::from_be_bytes(buf_len)
+    u32::from_le_bytes(buf_len)
 }
-
-// fn read_exact_as_bytes<R: Read>(reader: &mut R, start:u8) -> std::io::Result<[u8; 4]> {
-//     let mut buffer = [start; 4];
-//     reader.read_exact(&mut buffer)?;
-//     Ok(buffer)
-// }
 
 #[cfg(test)]
 mod unit_test {
@@ -172,6 +162,14 @@ mod unit_test {
     struct BsonUserMock {
         name: String,
         password: String
+    }
+
+    fn generate_mock_codes() -> Box<HashMap<String, String>> {
+        let mut hash:HashMap<String,String> = HashMap::new(); 
+        for i in 0..512 {
+            hash.insert(format!("{:04}",i), format!("{}_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbiiiiiiiiiiiiiiiiiiiiiiiiigggggggggggggggggggggggggssssssssttttttttttttrrrrrrrrrriiiiiiiiiiiinnnnnnnnnnnnnnnnnnngggggggggggggggggggggg", i));
+        }
+        Box::new(hash)
     }
 
     #[test]
@@ -214,5 +212,21 @@ mod unit_test {
 
         assert_eq!(user_back.name,"ali");
         assert_eq!(user_back.password,"amir");
+    }
+
+    #[test]
+    fn test_fast_serialize() {
+        let hash = *generate_mock_codes(); 
+        let buffer = fast_serialize_dic(hash.clone()).unwrap();
+        
+        assert_ne!(buffer.len(), 0);
+
+        let deserialized_hash = fast_deserialize_dic(&buffer).unwrap();
+
+        assert_eq!(deserialized_hash.len(), hash.len());
+        for (key,value) in deserialized_hash {
+            let original_value = hash.get(&key).unwrap();
+            assert_eq!(&value, original_value);
+        }
     }
 }
