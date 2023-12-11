@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+use std::io::{Write, self};
+
 use base64::Engine;
 use base64::engine::general_purpose;
 use bson::{doc, oid::ObjectId, Binary, DateTime as BsonDateTime};
@@ -64,6 +67,19 @@ impl TimeData {
     pub fn generate_collection_name(id: &str, date: ChronoDateTime<Utc>) -> String {
         let year = date.year() - START_DATE;
         format!("z_z_{}_{:02}_{:02}_{:02}",id, year, date.month(), date.day())
+    }
+
+
+    pub fn data_to_hash(&self)-> HashMap<String, String> {
+        //byte as a writer
+        let mut writer = std::io::BufWriter::new(std::io::stdout());
+        writer.write_all(&self.data.bytes).unwrap();
+        
+        //to hash
+        let mut reader_buffer = io::BufReader::new(writer.buffer());
+        let hash = super::super::serializer_helper::fast_deserialize_dic(&mut reader_buffer).unwrap();
+
+        hash
     }
 }
 

@@ -1,5 +1,5 @@
 use std::env::current_dir;
-use std::fs;
+use std::fs::{self, DirEntry, ReadDir};
 use std::path::PathBuf;
 
 pub const EXCEL_FILE_EXTENSION: &str = "xls"; 
@@ -64,7 +64,7 @@ pub enum AllFilesInDirectoryError {
     STDError(String)
 }
 
-pub fn all_files_in_directory(directory_path: &PathBuf, extention: Option<&str>) -> Result<Vec<PathBuf>,std::io::Error> {
+pub fn all_files_in_directory<'a>(directory_path: &PathBuf, extention: Option<&str>) -> Result<Vec<PathBuf>,std::io::Error> {
     let mut list_files: Vec<PathBuf> = vec![];
     let meta_data = fs::metadata(directory_path);
     if !meta_data.is_ok() {
@@ -76,22 +76,22 @@ pub fn all_files_in_directory(directory_path: &PathBuf, extention: Option<&str>)
         return Ok(list_files);
     }
 
-    let entries = fs::read_dir(directory_path).unwrap();
+    let entries:ReadDir = fs::read_dir(directory_path).unwrap();
 
     for entry in entries {
-        let entry = entry.unwrap(); 
-        let file_path = entry.path();
+        let entry:DirEntry = entry.unwrap(); 
+        let file_path: PathBuf = entry.path();
 
         if file_path.is_file() {
             match extention {
                 Some(value)=> {
                     let file_ext = file_path.extension().unwrap().to_str().unwrap();
                     if  file_ext.to_lowercase() == value.to_lowercase(){
-                        list_files.push(file_path)
+                        list_files.push(file_path.clone())
                     }
                 },
                 None  => {
-                    list_files.push(file_path)
+                    list_files.push(file_path.clone())
                 }
             }
         }

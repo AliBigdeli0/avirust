@@ -1,6 +1,9 @@
 
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
-use std::io::Write;
+use std::io::{self, Write};
+
+pub const YES:char = 'Y'; 
+pub const NO:char = 'N';
 
 fn print_default(msg: &str, color: Color)
 {
@@ -37,4 +40,45 @@ pub fn success(msg: &str) {
 
 pub fn successln(msg: &str) {
     print_default(&format!("{}\n",msg), Color::Green)
+}
+
+pub fn confirm_message(msg: &str) -> char {
+    print!("{}",msg); 
+    warning("(Y/n) "); 
+    io::stdout().flush().unwrap();
+
+    let mut input_string = String::new();
+
+    io::stdin()
+        .read_line(&mut input_string)
+        .expect("failed to read line");
+
+    match input_string.trim() {
+        "Y" => YES,
+        _ =>  NO
+    }
+}
+
+pub fn select_from_list<'a,T,F>(list: &'a Vec<T>,  print_operation: F) -> Option<&'a T>
+    where F: Fn(usize,&'a T) -> (),
+{
+    let mut input_string = String::new();
+
+    for (index, item) in list.iter().enumerate() {
+        print_operation(index, item);
+    }
+
+    warning("select a number from following name: ? "); 
+    io::stdout().flush().unwrap();
+
+    io::stdin()
+        .read_line(&mut input_string)
+        .expect("failed to read line");
+
+    let selected_index = input_string
+        .trim()
+        .parse::<usize>()
+        .expect("can not convert entered number to integer"); 
+
+    list.get(selected_index - 1)
 }

@@ -23,7 +23,7 @@ pub fn read_excel_info(file_path: Box<&str>, excel_obj: &mut ExcelInfo) -> Resul
     Ok(())
 }
 
-pub fn check_configurations(excel_info: ExcelInfo) -> Result<String, String> {
+pub fn check_configurations(excel_info: &ExcelInfo) -> Result<String, String> {
     let none_empty_items: Vec<&ExcelColumnInfo>=   excel_info
         .list_items
         .iter()

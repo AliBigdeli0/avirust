@@ -5,6 +5,8 @@ use bson::Bson;
 use serde::Deserialize;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
+use std::collections::HashMap;
+
 pub use serde_json::{from_str, to_string};
 
 pub fn serialize_json<T>(obj: &T) -> Result<String, serde_json::Error> where
@@ -78,6 +80,75 @@ where T: DeserializeOwned,
     let instance: T = deserilize_yaml(&mut yaml_string).unwrap();
     instance
 }
+
+pub fn fast_serialize_dic<W: Write>(dictionary: &HashMap<&str, &str>, stream: &mut W) -> std::io::Result<()> {
+    let mut writer = std::io::BufWriter::new(stream);
+
+    // write header
+    writer.write_all(&(dictionary.len() as u32).to_le_bytes())?;
+
+    for (key, value) in dictionary {
+        // write key
+        writer.write_all(&(key.len() as u32).to_le_bytes())?;
+        writer.write_all(key.as_bytes())?;
+
+        // write value
+        writer.write_all(&(value.len() as u32).to_le_bytes())?;
+        writer.write_all(value.as_bytes())?;
+    }
+
+    writer.flush()?;
+
+    Ok(())
+}
+
+pub fn fast_deserialize_dic(reader: &mut std::io::BufReader<&[u8]>) -> std::io::Result<HashMap<String, String>> {
+    let mut dictionary = std::collections::HashMap::new();
+
+    // let mut counter: [u8; 4] = [0; 4];
+    {
+        // reader.read(&mut counter).unwrap();
+        let count = reverse_bytes(reader);
+
+        for _ in 0..count {
+            let key = extract_data(reader);
+            let value = extract_data(reader);
+
+            println!("key: {:?}, value: {:?}", key, value);
+            
+            dictionary.insert(key, value);
+        }
+    }
+
+    Ok(dictionary)
+}
+
+fn extract_data(reader: &mut std::io::BufReader<&[u8]>) -> String {
+    let mut buf_len= [0; 1];
+    reader.read_exact(&mut buf_len).unwrap();
+    let data_len = buf_len[0] as usize;
+
+    let mut data_bytes = vec![0; data_len];
+    reader.read_exact(&mut data_bytes).unwrap();
+
+    String::from_utf8(data_bytes).unwrap()
+}
+
+fn reverse_bytes(reader: &mut std::io::BufReader<&[u8]>) -> u32 {
+    // for i in 0..4 {
+    //     counter.swap(0, 3 - i);
+    // }
+    let mut buf_len= [0; 4];
+    reader.read_exact(&mut buf_len).unwrap();
+    // buf_len[0] as u32
+    u32::from_be_bytes(buf_len)
+}
+
+// fn read_exact_as_bytes<R: Read>(reader: &mut R, start:u8) -> std::io::Result<[u8; 4]> {
+//     let mut buffer = [start; 4];
+//     reader.read_exact(&mut buffer)?;
+//     Ok(buffer)
+// }
 
 #[cfg(test)]
 mod unit_test {

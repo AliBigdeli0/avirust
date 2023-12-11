@@ -47,15 +47,27 @@ pub async fn check_db_exist(config: entity::model::db_config::DBConfig) -> Resul
     Ok((client, database))  
 }
 
-pub async fn read_all_wells(database: Database) -> Result<Vec<Well>, Error> {
-    let mut return_wells = Vec::new();
+pub async fn read_all_wells<'a>(database: Database) -> Result<&'a Vec<Well>, Error> {
+    read_all_from_db::<Well>(database, WELL_COLLECTION_NAME).await
+}
 
-    let mut cursor: Cursor<Well> =database.collection(WELL_COLLECTION_NAME).find(None, None).await?;
+pub async fn read_from_time_data<'a>(database: Database, collection_name: &'a str) -> Result<&'a Vec<TimeData>, Error> {
+    read_all_from_db::<TimeData>(database, collection_name).await
+}
+
+async fn read_all_from_db<'a, T>(database: Database, collection_name: &'a str) -> Result<&'a Vec<T>, Error> 
+    where T: serde::de::DeserializeOwned
+{
+    let mut return_documents:Vec<T> = Vec::new();
+
+    let mut cursor: Cursor<T> =database.collection(collection_name).find(None, None).await?;
     
     while cursor.advance().await? {
        let well = cursor.deserialize_current()?; 
-       return_wells.push(well);
+       return_documents.push(well);
     }
 
-    Ok(return_wells)
+    let boxed_vec: Box<Vec<T>> = Box::new(return_documents);
+    let vec_ref: &'a Vec<T> = Box::leak(boxed_vec);
+    Ok(vec_ref)
 }
