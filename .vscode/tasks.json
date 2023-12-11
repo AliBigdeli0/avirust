@@ -1,0 +1,32 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["build"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "RUSTFLAGS":"-C prefer-dynamic"
+        }
+      },
+      "dependsOn":"linux_per_build",
+    }, 
+    {
+      "label": "linux_per_build", 
+      "type": "shell", 
+      "command": "make", 
+      "args": ["copy_www_files"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+    "rust-analyzer.linkedProjects": [
+        "./web_asm/Cargo.toml",
+        "./db/Cargo.toml"
+    ]
+}
