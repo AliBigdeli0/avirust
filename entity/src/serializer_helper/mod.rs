@@ -81,7 +81,7 @@ where T: DeserializeOwned,
     instance
 }
 
-pub fn fast_serialize_dic<'a>(dictionary: HashMap<String, String>) -> std::io::Result<Vec<u8>> {
+pub fn fast_serialize_dic<'a>(dictionary: &HashMap<String, String>) -> std::io::Result<Vec<u8>> {
     let mut writer_buffer :Vec<u8>= Vec::new();
 
     {
@@ -217,7 +217,7 @@ mod unit_test {
     #[test]
     fn test_fast_serialize() {
         let hash = *generate_mock_codes(); 
-        let buffer = fast_serialize_dic(hash.clone()).unwrap();
+        let buffer = fast_serialize_dic(&hash.clone()).unwrap();
         
         assert_ne!(buffer.len(), 0);
 

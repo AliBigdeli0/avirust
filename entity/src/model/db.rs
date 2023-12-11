@@ -10,7 +10,7 @@ use serde::Deserialize;
 pub const WELL_COLLECTION_NAME:&str = "wells";
 pub const START_DATE: i32 = 2000;
 
-pub fn convert_to_bson(d: ChronoDateTime<Utc>) -> BsonDateTime {
+pub fn convert_to_bson_date(d: ChronoDateTime<Utc>) -> BsonDateTime {
     bson::DateTime::builder()
         .year(d.year())
         .month(d.month()as u8)
@@ -54,7 +54,7 @@ impl TimeData {
     pub fn new(d: ChronoDateTime<Utc>, data_str: String) -> Self {
         let data = general_purpose::STANDARD_NO_PAD.encode(data_str);
         let binary_data = Binary::from_base64(data,None).unwrap();
-        let bson_date = convert_to_bson(d);
+        let bson_date = convert_to_bson_date(d);
 
         Self {
             _id: ObjectId::new(),
@@ -63,20 +63,46 @@ impl TimeData {
         }
     }
 
+    pub fn new_binary(d: ChronoDateTime<Utc>, binary_data: Binary) -> Self {
+        let bson_date = convert_to_bson_date(d);
+
+        Self {
+            _id: ObjectId::new(),
+            data:binary_data, 
+            date: bson_date,
+        }
+    }
+
+    pub fn new_hash(d: ChronoDateTime<Utc>, hash: &HashMap<String,String>) -> Self {
+        let bson_date = convert_to_bson_date(d); 
+        let bson_binary = TimeData::hash_to_binary(hash).unwrap();
+        Self {
+            _id: ObjectId::new(),
+            date: bson_date, 
+            data: bson_binary,
+        } 
+    }
+
     pub fn generate_collection_name(id: &str, date: ChronoDateTime<Utc>) -> String {
         let year = date.year() - START_DATE;
         format!("z_z_{}_{:02}_{:02}_{:02}",id, year, date.month(), date.day())
     }
 
 
-    pub fn data_to_hash(&self)-> HashMap<String, String> {
-        // let mut memory_buffer :Vec<u8> = Vec::new();
-        // memory_buffer.write_all(&self.data.bytes).unwrap();
-        
-        // let mut reader_buffer = io::BufReader::new(memory_buffer.as_slice());
-        let hash = super::super::serializer_helper::fast_deserialize_dic(&self.data.bytes).unwrap();
-        
-        hash
+    pub fn data_to_hash(binary: Binary)-> std::io::Result<HashMap<String, String>> {
+        super::super::serializer_helper::fast_deserialize_dic(&binary.bytes)   
+    }
+
+    pub fn hash_to_binary(hash: &HashMap<String,String>) -> std::io::Result<Binary> {
+        let serlialized_hash = super::super::serializer_helper::fast_serialize_dic(&hash)?;
+        let encoded_data = general_purpose::STANDARD_NO_PAD.encode(serlialized_hash);
+
+        let ret_binary = match Binary::from_base64(encoded_data, None) {
+            Ok(binary) => binary, 
+            Err(_) =>  return Err(std::io::Error::new(std::io::ErrorKind::Other, "error in convert hash to binary!!!")),
+        };
+
+        Ok(ret_binary)
     }
 }
 
@@ -105,5 +131,18 @@ mod test_db {
         assert_ne!(time_data.data.bytes.len(), 0);
         assert_ne!(time_data.date.to_string(), "")
     }
+
+    #[test]
+    fn test_conversion_binary() {
+        let mut mock_hash = HashMap::new();
+        mock_hash.insert(String::from("first"), String::from("last"));
+
+        let binary = TimeData::hash_to_binary(&mock_hash).unwrap();
+        println!("{:?}", binary);
+        let returned_hash = TimeData::data_to_hash(binary).unwrap(); 
+
+        assert_eq!(returned_hash.get("first"), mock_hash.get("first"));
+    }
+
 }
 
