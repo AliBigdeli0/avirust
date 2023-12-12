@@ -1,18 +1,14 @@
-
-
 use chrono::{
     DateTime, 
     Utc, 
     format::{
         DelayedFormat, 
-        StrftimeItems, ParseErrorKind
+        StrftimeItems,
     }, 
     NaiveDate, 
     NaiveTime,
     NaiveDateTime, 
-    Local, 
-    ParseError, 
-    prelude::*, LocalResult,
+    Local
 };
 
 const BSON_TIME_FORMAT: &str="%Y-%m-%dT%H:%M:%SZ";
@@ -44,9 +40,18 @@ pub fn create_datetime_utc(year: i32, month: u32, day: u32, hour: u32, minute: u
     )
 }
 
-pub fn convert_string_to_local(str_date: impl AsRef<str>) -> Result<DateTime<Local>, ParseError>{
-    let parsed_date = DateTime::parse_from_str(str_date.as_ref(), EXCEL_TIME_FORMAT)?;
-    Ok(parsed_date.with_timezone(&Local))
+pub fn convert_string_to_local(str_date: impl AsRef<str>) -> Result<DateTime<Local>, String>{
+    let parser_date_result = NaiveDateTime::parse_from_str(str_date.as_ref(), EXCEL_TIME_FORMAT);
+
+    if let Ok(parsed_date) = parser_date_result {
+        if let Some(local_date_result) = parsed_date.and_local_timezone(Local).single() {
+            Ok(local_date_result)
+        }else {
+            Err(String::from("error in date time conversion"))
+        }
+    } else { 
+        Err(String::from("Error in convert nativeDateTime to str"))
+    }
 }
 
 pub fn convert_local_to_utc(datetime: DateTime<Local>) -> DateTime<Utc> {
@@ -55,7 +60,7 @@ pub fn convert_local_to_utc(datetime: DateTime<Local>) -> DateTime<Utc> {
 
 #[cfg(test)]
 mod test_time_helper {
-    use chrono::{Datelike, Timelike};
+    use chrono::{Timelike, Datelike};
 
     use super::*;
 
@@ -79,9 +84,20 @@ mod test_time_helper {
             Ok(value) => value, 
             Err(err) => panic!("{:?}",err),
         };
-        assert_eq!(date.date_naive().day(), 6);
-        assert_eq!(date.date_naive().month0(), 4);
-        assert_eq!(date.time().hour(), 18);
-        // let date2 = convert_string_to_local("04/05/2023 6:00:00");
+        assert_eq!(date.naive_local().day(), 4);
+        assert_eq!(date.date_naive().month(),6);
+        assert_eq!(date.time().hour(), 6);
+        
+        let date2 = convert_string_to_local("12/23/2023 18:00:00").unwrap();
+        assert_eq!(date2.naive_local().day(), 23);
+        assert_eq!(date2.date_naive().month(),12);
+        assert_eq!(date2.time().hour(), 18);
+
+
+        match convert_string_to_local("20/23/2023 18:00:00") {
+            Ok(_) => panic!("shoudl not set to this message"),
+            Err(_) => assert!(true)
+        }
+
     }
 }
