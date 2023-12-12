@@ -1,6 +1,19 @@
 
 
-use chrono::{DateTime, Utc, format::{DelayedFormat, StrftimeItems}, NaiveDate, NaiveTime,NaiveDateTime, Local, ParseError};
+use chrono::{
+    DateTime, 
+    Utc, 
+    format::{
+        DelayedFormat, 
+        StrftimeItems, ParseErrorKind
+    }, 
+    NaiveDate, 
+    NaiveTime,
+    NaiveDateTime, 
+    Local, 
+    ParseError, 
+    prelude::*, LocalResult,
+};
 
 const BSON_TIME_FORMAT: &str="%Y-%m-%dT%H:%M:%SZ";
 const EXCEL_TIME_FORMAT: &str= "%m/%d/%Y %H:%M:%S";
@@ -31,9 +44,9 @@ pub fn create_datetime_utc(year: i32, month: u32, day: u32, hour: u32, minute: u
     )
 }
 
-pub fn convert_string_to_local(str_date: impl AsRef<str>) -> Result<DateTime<Local>, ParseError> {
-    let local = DateTime::parse_from_str(str_date.as_ref(), EXCEL_TIME_FORMAT)?;
-    Ok(local.with_timezone(&Local))
+pub fn convert_string_to_local(str_date: impl AsRef<str>) -> Result<DateTime<Local>, ParseError>{
+    let parsed_date = DateTime::parse_from_str(str_date.as_ref(), EXCEL_TIME_FORMAT)?;
+    Ok(parsed_date.with_timezone(&Local))
 }
 
 pub fn convert_local_to_utc(datetime: DateTime<Local>) -> DateTime<Utc> {
