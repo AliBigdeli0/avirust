@@ -6,6 +6,7 @@ pub mod file_helper;
 pub mod time_helper;
 pub mod hash_helper;
 pub mod print_helper;
+pub mod thread_helper;
 
 #[cfg(test)]
 mod tests {
