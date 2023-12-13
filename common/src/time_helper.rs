@@ -5,8 +5,8 @@ use chrono::{
         DelayedFormat, 
         StrftimeItems,
     }, 
-    NaiveDate, 
-    NaiveTime,
+    NaiveTime, 
+    NaiveDate,
     NaiveDateTime, 
     Local
 };
