@@ -1,4 +1,5 @@
-use calamine::{open_workbook, Error, Xls, Reader, DataType};
+use calamine::{open_workbook, Xls, Reader, DataType};
+use chrono::{DateTime, Utc};
 use entity::dto::excel_dto::{ExcelInfo, ExcelColumnInfo};
 
 const DATE_COLUMN_INDEX: usize= 0; 
@@ -6,7 +7,7 @@ const TIME_COLUMN_INDEX: usize= 1;
 const START_ROW: usize = 5;
 const IGNORE_CODE: &str ="-";
 
-pub fn read_excel_info(file_path: Box<&str>, excel_obj: &mut ExcelInfo) -> Result<(),Error>{
+pub fn read_excel_info(file_path: Box<&str>, excel_obj: &mut ExcelInfo) -> Result<(), Box<dyn std::error::Error>>{
 
     navigate_rows(file_path,true ,move |_ ,row| {
 
@@ -27,7 +28,7 @@ pub fn read_excel_info(file_path: Box<&str>, excel_obj: &mut ExcelInfo) -> Resul
     Ok(())
 }
 
-pub fn read_from_excels(excel_path: Box<&str>, _: &mut ExcelInfo) -> Result<Vec<ExcelInfo>, Error>{
+pub fn read_from_excels(excel_path: Box<&str>, base_info: &mut ExcelInfo) -> Result<Vec<ExcelInfo>, Box<dyn std::error::Error>>{
     let mut ret_result = Vec::new();
 
     navigate_rows(excel_path, false, |index_row ,row| {
@@ -35,17 +36,30 @@ pub fn read_from_excels(excel_path: Box<&str>, _: &mut ExcelInfo) -> Result<Vec<
             return Ok(());
         }
 
-        let filled_excel_info = ExcelInfo::new();
+        let mut filled_excel_info = ExcelInfo::new();
         navigate_columns(row, |index_column,column| {
             if column.is_empty() {
                 return Ok(());
             }
 
             if index_column == DATE_COLUMN_INDEX || index_column == TIME_COLUMN_INDEX {
-                                
+                if index_column == DATE_COLUMN_INDEX {
+                    let date = fetch_as_date(&column.as_string())?;
+                    filled_excel_info.set_date(date);
+                } 
             }
             else {
-
+                let value_result = fetch_as_value(column.as_string());
+                
+                if let Ok(value) = value_result {
+                    filled_excel_info.set_value(index_column, value);
+                } else {
+                    logger::error(&format!("error in read data from excel with following information: {}, {}, {}", 
+                        base_info.get_well_id(), 
+                        base_info.get_well_name(), 
+                        index_row)
+                    );
+                }
             }
 
             Ok(())
@@ -57,8 +71,34 @@ pub fn read_from_excels(excel_path: Box<&str>, _: &mut ExcelInfo) -> Result<Vec<
     Ok(ret_result)
 }
 
-fn navigate_columns<F>(row:&[DataType], mut natigator: F) -> Result<(), Error> 
-    where F: FnMut(usize, &DataType) ->  Result<(), Error>
+fn fetch_as_value(column_value: Option<String>) -> Result<String, Box<dyn std::error::Error>> {
+    if let Some(value_str) = column_value {
+        if value_str.trim().is_empty() {
+            Ok(value_str)
+        } else {
+            Err("the value is empty".into())
+        }
+    } else {
+        Err("error in convert column into value".into())
+    }
+}
+
+fn fetch_as_date(date_str_opt: &Option<String>) -> Result<DateTime<Utc>, Box<dyn std::error::Error>> {
+    if let Some(date_str) = date_str_opt {
+        let date_result = common::time_helper::convert_string_to_local(date_str); 
+        if let Ok(date) = date_result {
+            let utc_date = common::time_helper::convert_local_to_utc(date); 
+            Ok(utc_date)
+        } else {
+            Err("error in convert string to local date".into())
+        }
+    } else {
+        Err("error in convert date to str".into())
+    }
+}
+
+fn navigate_columns<F>(row:&[DataType], mut natigator: F) -> Result<(), Box<dyn std::error::Error>> 
+    where F: FnMut(usize, &DataType) ->  Result<(), Box<dyn std::error::Error>>
 {
     for (index,column) in row.iter().enumerate() {
         natigator(index, column)?;
@@ -66,8 +106,8 @@ fn navigate_columns<F>(row:&[DataType], mut natigator: F) -> Result<(), Error>
     Ok(())
 }
 
-fn navigate_rows<F>(excel_path: Box<&str>,one_row: bool ,mut natigator: F) -> Result<(), Error>
-    where F: FnMut(usize,&[DataType])->Result<(), Error>
+fn navigate_rows<F>(excel_path: Box<&str>,one_row: bool ,mut natigator: F) -> Result<(), Box<dyn std::error::Error>>
+    where F: FnMut(usize,&[DataType])->Result<(), Box<dyn std::error::Error>>
 {
     let mut workbook:   Xls<_> = open_workbook(*excel_path)?; 
 

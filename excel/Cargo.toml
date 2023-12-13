@@ -11,4 +11,7 @@ no_std=[]
 
 [dependencies]
 calamine = "0.22.1"
+chrono = "0.4.31"
+common = { version = "0.1.0", path = "../common" }
 entity = { version = "0.1.0", path = "../entity" }
+logger = { version = "0.1.0", path = "../logger" }

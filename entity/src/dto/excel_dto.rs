@@ -62,6 +62,16 @@ impl ExcelInfo {
         &self.well_id
     }
 
+    pub fn set_date(&mut self, date: DateTime<Utc>) {
+        self.date = date; 
+    }
+ 
+    pub fn set_value(&mut self,index:usize,  value: String) {
+        if !value.trim().is_empty() {
+            self.list_items[index].value = value;
+        } 
+    }
+
     pub fn  append(&mut self, column: String, code : String) {
         self.append_value(column, code, None)
     }
