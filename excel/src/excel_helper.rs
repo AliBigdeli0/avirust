@@ -1,43 +1,46 @@
-use calamine::{open_workbook, Xls, Reader, DataType};
+use calamine::{open_workbook, DataType, Reader, Xls};
 use chrono::{DateTime, Utc};
-use entity::dto::excel_dto::{ExcelInfo, ExcelColumnInfo};
+use entity::dto::excel_dto::{ExcelColumnInfo, ExcelInfo};
 
-const DATE_COLUMN_INDEX: usize= 0; 
-const TIME_COLUMN_INDEX: usize= 1;
+const DATE_COLUMN_INDEX: usize = 0;
+const TIME_COLUMN_INDEX: usize = 1;
 const START_ROW: usize = 5;
-const IGNORE_CODE: &str ="-";
+const IGNORE_CODE: &str = "-";
 
-pub fn read_excel_info(file_path: Box<&str>, excel_obj: &mut ExcelInfo) -> Result<(), Box<dyn std::error::Error>>{
-
-    navigate_rows(file_path,true ,move |_ ,row| {
-
-        navigate_columns(row, |index_column,column| {
-
-            if index_column == DATE_COLUMN_INDEX ||  index_column == TIME_COLUMN_INDEX {
-                return  Ok(());
+pub fn read_excel_info(
+    file_path: Box<&str>,
+    excel_obj: &mut ExcelInfo,
+) -> Result<(), Box<dyn std::error::Error>> {
+    navigate_rows(file_path, true, move |_, row| {
+        navigate_columns(row, |index_column, column| {
+            if index_column == DATE_COLUMN_INDEX || index_column == TIME_COLUMN_INDEX {
+                return Ok(());
             }
 
             excel_obj.append(column.to_string(), String::from(IGNORE_CODE));
-            
+
             Ok(())
         })?;
 
-        return Ok(())
+        return Ok(());
     })?;
 
     Ok(())
 }
 
-pub fn read_from_excels(excel_path: Box<&str>, base_info: &mut ExcelInfo) -> Result<Vec<ExcelInfo>, Box<dyn std::error::Error>>{
+pub fn read_from_excels(
+    excel_path: Box<&str>,
+    base_info: &mut ExcelInfo,
+) -> Result<Vec<ExcelInfo>, Box<dyn std::error::Error>> {
     let mut ret_result = Vec::new();
 
-    navigate_rows(excel_path, false, |index_row ,row| {
+    navigate_rows(excel_path, false, |index_row, row| {
         if index_row < START_ROW {
             return Ok(());
         }
 
         let mut filled_excel_info = ExcelInfo::new();
-        navigate_columns(row, |index_column,column| {
+        navigate_columns(row, |index_column, column| {
             if column.is_empty() {
                 return Ok(());
             }
@@ -46,19 +49,19 @@ pub fn read_from_excels(excel_path: Box<&str>, base_info: &mut ExcelInfo) -> Res
                 if index_column == DATE_COLUMN_INDEX {
                     let date = fetch_as_date(&column.as_string())?;
                     filled_excel_info.set_date(date);
-                } 
-            }
-            else {
+                }
+            } else {
                 let value_result = fetch_as_value(column.as_string());
-                
+
                 if let Ok(value) = value_result {
                     filled_excel_info.set_value(index_column, value);
                 } else {
-                    logger::error(&format!("error in read data from excel with following information: {}, {}, {}", 
-                        base_info.get_well_id(), 
-                        base_info.get_well_name(), 
-                        index_row)
-                    );
+                    logger::error(&format!(
+                        "error in read data from excel with following information: {}, {}, {}",
+                        base_info.get_well_id(),
+                        base_info.get_well_name(),
+                        index_row
+                    ));
                 }
             }
 
@@ -83,11 +86,13 @@ fn fetch_as_value(column_value: Option<String>) -> Result<String, Box<dyn std::e
     }
 }
 
-fn fetch_as_date(date_str_opt: &Option<String>) -> Result<DateTime<Utc>, Box<dyn std::error::Error>> {
+fn fetch_as_date(
+    date_str_opt: &Option<String>,
+) -> Result<DateTime<Utc>, Box<dyn std::error::Error>> {
     if let Some(date_str) = date_str_opt {
-        let date_result = common::time_helper::convert_string_to_local(date_str); 
+        let date_result = common::time_helper::convert_string_to_local(date_str);
         if let Ok(date) = date_result {
-            let utc_date = common::time_helper::convert_local_to_utc(date); 
+            let utc_date = common::time_helper::convert_local_to_utc(date);
             Ok(utc_date)
         } else {
             Err("error in convert string to local date".into())
@@ -97,23 +102,29 @@ fn fetch_as_date(date_str_opt: &Option<String>) -> Result<DateTime<Utc>, Box<dyn
     }
 }
 
-fn navigate_columns<F>(row:&[DataType], mut natigator: F) -> Result<(), Box<dyn std::error::Error>> 
-    where F: FnMut(usize, &DataType) ->  Result<(), Box<dyn std::error::Error>>
+fn navigate_columns<F>(row: &[DataType], mut natigator: F) -> Result<(), Box<dyn std::error::Error>>
+where
+    F: FnMut(usize, &DataType) -> Result<(), Box<dyn std::error::Error>>,
 {
-    for (index,column) in row.iter().enumerate() {
+    for (index, column) in row.iter().enumerate() {
         natigator(index, column)?;
     }
     Ok(())
 }
 
-fn navigate_rows<F>(excel_path: Box<&str>,one_row: bool ,mut natigator: F) -> Result<(), Box<dyn std::error::Error>>
-    where F: FnMut(usize,&[DataType])->Result<(), Box<dyn std::error::Error>>
+fn navigate_rows<F>(
+    excel_path: Box<&str>,
+    one_row: bool,
+    mut natigator: F,
+) -> Result<(), Box<dyn std::error::Error>>
+where
+    F: FnMut(usize, &[DataType]) -> Result<(), Box<dyn std::error::Error>>,
 {
-    let mut workbook:   Xls<_> = open_workbook(*excel_path)?; 
+    let mut workbook: Xls<_> = open_workbook(*excel_path)?;
 
-    if let Some(Ok(range)) =  workbook.worksheet_range_at(0) {
+    if let Some(Ok(range)) = workbook.worksheet_range_at(0) {
         for (index, row) in range.rows().enumerate() {
-            natigator(index,row)?;
+            natigator(index, row)?;
             if one_row {
                 break;
             }
@@ -124,37 +135,22 @@ fn navigate_rows<F>(excel_path: Box<&str>,one_row: bool ,mut natigator: F) -> Re
 }
 
 pub fn check_configurations(excel_info: &ExcelInfo) -> Result<String, String> {
-    let none_empty_items: Vec<&ExcelColumnInfo>=   excel_info
+    let none_empty_items: Vec<&ExcelColumnInfo> = excel_info
         .list_items
         .iter()
         .filter(|x| x.code != IGNORE_CODE)
         .clone()
         .collect();
-    
-    if none_empty_items.len() ==  0 {
-        return Err(String::from("ERROR: there is 'NO' specified code in the file name"));
+
+    if none_empty_items.len() == 0 {
+        return Err(String::from(
+            "ERROR: there is 'NO' specified code in the file name",
+        ));
     }
 
-    Ok(
-        none_empty_items
+    Ok(none_empty_items
         .iter()
         .map(|s| format!("\n\t{}={}", s.column, s.code))
-        .collect::<Vec<_>>().join(", ")
-    )
+        .collect::<Vec<_>>()
+        .join(", "))
 }
-
-// fn read_excel_to_end(range: &Range<DataType>) -> u32 {
-//     let mut counter:u32 = 3;
-//     loop {
-//         let value = range.get_value((0, counter));
-//         match value {
-//             Some(_) => {
-//                 counter += 1;
-//             } ,
-//             None => {
-//                 break;
-//             }
-//         }
-//     }
-//     counter
-// }
