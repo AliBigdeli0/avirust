@@ -1,5 +1,5 @@
 use calamine::{open_workbook, DataType, Reader, Xls};
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDateTime, Utc};
 use entity::dto::excel_dto::{ExcelColumnInfo, ExcelInfo, IGNORE_CODE};
 
 const DATE_COLUMN_INDEX: usize = 0;
@@ -38,16 +38,15 @@ pub fn read_from_excels(
             return Ok(());
         }
 
-        let mut filled_excel_info = ExcelInfo::new();
+        let mut filled_excel_info = base_info.clone();
         navigate_columns(row, |index_column, column| {
             if column.is_empty() {
-                return Err("the cell is empty".into());
+                return Ok(());
             }
 
             if index_column == DATE_COLUMN_INDEX || index_column == TIME_COLUMN_INDEX {
                 if index_column == DATE_COLUMN_INDEX {
-                    
-                    let date = match fetch_as_date(column.get_string()) {
+                    let date = match fetch_as_date(column.as_datetime()) {
                         Ok(value) => value,
                         Err(e) => {
                             logger::error(&format!("error in : {:?}", e));
@@ -57,10 +56,10 @@ pub fn read_from_excels(
                     filled_excel_info.set_date(date);
                 }
             } else {
-                let value_result = fetch_as_value(column.as_string());
+                let value_result = fetch_as_value(column);
 
                 if let Ok(value) = value_result {
-                    if base_info.list_items[index_column].code != IGNORE_CODE {
+                    if index_column < base_info.list_items.len() && base_info.list_items[index_column].code != IGNORE_CODE {
                         filled_excel_info.set_value(index_column, value);
                     }
                 } else {
@@ -82,27 +81,31 @@ pub fn read_from_excels(
     Ok(ret_result)
 }
 
-fn fetch_as_value(column_value: Option<String>) -> Result<String, Box<dyn std::error::Error>> {
-    if let Some(value_str) = column_value {
-        if value_str.trim().is_empty() {
-            Ok(value_str)
-        } else {
-            Err("the value is empty".into())
-        }
+fn fetch_as_value(column_type: &DataType) -> Result<String, Box<dyn std::error::Error>> {
+    let column_value = match column_type {
+        DataType::Float(x) => format!("{:?}", x),
+        DataType::Int(x) => format!("{:?}", x),
+        DataType::String(x) => format!("{:?}", x),
+        DataType::Error(x)=> { 
+            logger::error(&format!("error in get data from cell : {}", x));
+            String::from("")
+        },
+        _ => String::from(""),
+    };
+
+    if !column_value.trim().is_empty() {
+        Ok(column_value)
     } else {
-        Err("error in convert column into value".into())
+        Err("the value is empty".into())
     }
 }
 
-fn fetch_as_date(date_str_opt: Option<&str>) -> Result<DateTime<Utc>, Box<dyn std::error::Error>> {
-    if let Some(date_str) = date_str_opt {
-        let date_result = common::time_helper::convert_string_to_local(date_str);
-        if let Ok(date) = date_result {
-            let utc_date = common::time_helper::convert_local_to_utc(date);
-            Ok(utc_date)
-        } else {
-            Err(format!("error in convert string to local date: {}", date_str).into())
-        }
+fn fetch_as_date(
+    date_opt: Option<NaiveDateTime>,
+) -> Result<DateTime<Utc>, Box<dyn std::error::Error>> {
+    if let Some(date) = date_opt {
+        let utc_date = date.and_utc();
+        Ok(utc_date)
     } else {
         Err("error in convert date to str".into())
     }

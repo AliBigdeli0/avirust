@@ -25,13 +25,6 @@ pub async fn start(parser_result: ParserResult) {
     // init database
     let (_, database) = db::mongo::init().await;
 
-    //test read from database
-    // let collection_name = "c_2345415781_23_10_23";
-    // let _ = db::mongo::read_from_time_data(database.clone(), collection_name)
-    //     .await
-    //     .unwrap();
-
-    // if check file switched
     if parser_result.check_file {
         logger::info("check file names has started");
 
@@ -67,22 +60,10 @@ pub async fn start(parser_result: ParserResult) {
 
             extract_and_confirm_again(valid_configurations);
 
-            let xls_files = read_all_excel_files();
-            // let jobs =  xls_files.len();
-            // let workers = jobs / 2;
-
-            // let (_, (sender, receiver)) =
-            //     match thread_helper::create_threadpool_jobs::<usize>(jobs, workers) {
-            //         Ok(values) => values,
-            //         Err(e) => {
-            //             logger::error(&format!("error in create pool: {:?}", e));
-            //             panic!()
-            //         }
-            //     };
+            let xls_files: Vec<PathBuf> = read_all_excel_files();
 
             for xls_file in xls_files {
                 {
-                    // let clone_sender = sender.clone();
                     let xls_file_clone = xls_file.clone();
                     let excel_config_clone = &excel_config.clone();
                     let database_clone = database.clone();
@@ -91,12 +72,12 @@ pub async fn start(parser_result: ParserResult) {
                         xls_file_clone,
                         excel_config_clone,
                         &database_clone,
-                        // clone_sender,
                     )
                     .await
                 }
             }
-
+            
+            println!();
             // let completed_jobs = receiver.iter().skip(jobs).fold(0, |a, b| a + b);
             successln("All jobs has been completed...");
             // logger::info(&format!("number of '{}' is completed", completed_jobs));
@@ -129,8 +110,9 @@ async fn excel_into_db(
         }
     };
 
-    for new_excel_info in excel_info_list {
-        let database_result = db::mongo::insert_time_from_excel(database, new_excel_info).await;
+    for (index, new_excel_info) in excel_info_list.iter().enumerate() {
+        print_insert_status(index);
+        let database_result = db::mongo::insert_time_from_excel(database, new_excel_info.to_owned()).await;
         match database_result {
             Ok(()) => {
             },
@@ -140,16 +122,19 @@ async fn excel_into_db(
         }
     }
 
-    // match sender.send(1) {
-    //     Ok(a) => a,
-    //     Err(e) => {
-    //         logger::error(&format!(
-    //             "ERROR in read file : {:?} with error : {:?}",
-    //             xls_file, e
-    //         ));
-    //         ()
-    //     }
-    // }
+}
+
+fn print_insert_status(index: usize) {
+    let progress_bar = match index % 5 {
+        0 => '|',
+        1 => '/',
+        2 => '-',
+        3 => '|',
+        4 => '/',
+        _ => '|',
+    };
+
+    success(&format!("\r{} inserting to db", progress_bar));
 }
 
 fn extract_and_confirm_again(valid_configurations: String) {
