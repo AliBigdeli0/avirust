@@ -32,7 +32,7 @@
             "request": "launch",
             "name": "Debug Import UI",
             "program": "${workspaceFolder}/target/debug/import_ui",
-            "args": ["-c"],
+            "args": ["-s"],
             "cwd": "${workspaceFolder}/target/debug",
             "stopOnEntry": false,
             "preLaunchTask": "linux_per_build", 

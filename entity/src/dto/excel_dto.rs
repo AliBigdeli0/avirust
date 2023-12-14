@@ -1,4 +1,3 @@
-
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::vec;
@@ -10,23 +9,24 @@ use serde::Serialize;
 
 use super::super::serializer_helper::write_in_file_if_not_exist;
 
+pub const IGNORE_CODE: &str = "-";
 
-#[derive(Debug,Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ExcelColumnInfo {
-    pub column: String, 
-    pub code : String,
+    pub column: String,
+    pub code: String,
     #[serde(skip_serializing, skip_deserializing)]
     pub hash: u64,
     #[serde(skip_serializing, skip_deserializing)]
-    pub value: String,  
+    pub value: String,
 }
 
 impl ExcelColumnInfo {
-    pub fn new(column_value:String, code_value: String) -> Self {
+    pub fn new(column_value: String, code_value: String) -> Self {
         let hash_value = common::hash_helper::hash(&column_value);
 
         Self {
-            column : column_value, 
+            column: column_value,
             code: code_value,
             hash: hash_value,
             value: String::from(""),
@@ -35,8 +35,8 @@ impl ExcelColumnInfo {
 }
 
 // ----------------------------------
-#[derive(Debug,Deserialize, Serialize, Clone)]
-pub struct  ExcelInfo {
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ExcelInfo {
     well_id: String,
     well_name: String,
     #[serde(skip_serializing, skip_deserializing)]
@@ -45,12 +45,12 @@ pub struct  ExcelInfo {
 }
 
 impl ExcelInfo {
-    pub fn new () -> Self {
-        Self { 
-            well_id: String::from(""), 
+    pub fn new() -> Self {
+        Self {
+            well_id: String::from(""),
             well_name: String::from(""),
             date: common::time_helper::get_now_utc(),
-            list_items: vec![] 
+            list_items: vec![],
         }
     }
 
@@ -63,37 +63,40 @@ impl ExcelInfo {
     }
 
     pub fn set_date(&mut self, date: DateTime<Utc>) {
-        self.date = date; 
-    }
- 
-    pub fn set_value(&mut self,index:usize,  value: String) {
-        if !value.trim().is_empty() {
-            self.list_items[index].value = value;
-        } 
+        self.date = date;
     }
 
-    pub fn  append(&mut self, column: String, code : String) {
+    pub fn set_value(&mut self, index: usize, value: String) {
+        if !value.trim().is_empty() {
+            self.list_items[index].value = value;
+        }
+    }
+
+    pub fn append(&mut self, column: String, code: String) {
         self.append_value(column, code, None)
     }
 
-    pub fn append_value(&mut self, column: String, code : String, value: Option<String>) {
-        let mut excel_info = ExcelColumnInfo::new(column , code);
+    pub fn append_value(&mut self, column: String, code: String, value: Option<String>) {
+        let mut excel_info = ExcelColumnInfo::new(column, code);
 
         if let Some(uv) = value {
             excel_info.value = uv;
         };
 
         if !self.list_items.iter().any(|x| x.hash == excel_info.hash) {
-            self.list_items.push(excel_info);     
+            self.list_items.push(excel_info);
         }
     }
 
-    pub fn size(&self) ->usize {
+    pub fn size(&self) -> usize {
         self.list_items.len()
     }
 
     pub fn write_into_file(&mut self) {
-        let excel_file_name = common::file_helper::generate_yaml_extention(format!("{}_{}", self.well_name, self.well_id));
+        let excel_file_name = common::file_helper::generate_yaml_extention(format!(
+            "{}_{}",
+            self.well_name, self.well_id
+        ));
         let excel_file_path_buff = PathBuf::from(&excel_file_name);
         let excel_full_path = common::file_helper::import_path().join(excel_file_path_buff);
         write_in_file_if_not_exist(excel_full_path, &self).unwrap();
@@ -108,18 +111,16 @@ impl ExcelInfo {
     }
 
     pub fn to_hash(&self) -> HashMap<String, String> {
-        self
-            .list_items
+        self.list_items
             .clone()
             .into_iter()
+            .filter(|x| x.code != IGNORE_CODE)
             .fold(HashMap::new(), |mut hash, item| {
                 hash.insert(item.code, item.value);
-                hash 
+                hash
             })
     }
-
 }
-
 
 #[cfg(test)]
 mod test_excel_dto {
@@ -138,16 +139,23 @@ mod test_excel_dto {
 
     #[test]
     fn test_to_hash() {
-        let mut mock_excel_info = ExcelInfo::new(); 
+        let mut mock_excel_info = ExcelInfo::new();
 
-        mock_excel_info.append_value("ali".to_string(), "mehran".to_string(), Some("value".to_string()));
+        mock_excel_info.append_value(
+            "ali".to_string(),
+            "mehran".to_string(),
+            Some("value".to_string()),
+        );
 
         mock_excel_info.append("amir".to_string(), "hani".to_string());
         mock_excel_info.append("jarandee".to_string(), "asefeh".to_string());
         mock_excel_info.append("maman".to_string(), "mina".to_string());
 
         let hash = mock_excel_info.to_hash();
-        assert_eq!(hash.len(),mock_excel_info.list_items.len());
-        assert_eq!(hash.get("mehran").unwrap(), &mock_excel_info.list_items.get(0).unwrap().value);
+        assert_eq!(hash.len(), mock_excel_info.list_items.len());
+        assert_eq!(
+            hash.get("mehran").unwrap(),
+            &mock_excel_info.list_items.get(0).unwrap().value
+        );
     }
 }

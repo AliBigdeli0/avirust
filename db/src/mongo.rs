@@ -44,7 +44,7 @@ pub async fn check_db_exist(
     let ping_doc = doc! {
         "ping": 1
     };
-    
+
     client
         .database("admin")
         .run_command(ping_doc, None)
@@ -64,6 +64,10 @@ pub async fn insert_time_from_excel(
     excel_data: ExcelInfo,
 ) -> Result<(), Error> {
     let hash = &excel_data.to_hash();
+
+    if hash.len() == 0 {
+        return Err(Error::custom("the hash len is 0, it can not converted to a valid data"));
+    }
     let time_data = &TimeData::new_hash(excel_data.date, hash);
 
     let column_name = TimeData::generate_collection_name(excel_data.get_well_id(), excel_data.date);

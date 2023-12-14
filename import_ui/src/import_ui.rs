@@ -1,9 +1,8 @@
-use std::{path::PathBuf, sync::mpsc::Sender};
+use std::path::PathBuf;
 
 use common::{
     file_helper::*,
     print_helper::{*},
-    thread_helper,
 };
 use entity::{dto::excel_dto::ExcelInfo, model::db::Well, serializer_helper::read_from_file};
 use excel::excel_helper::{self, check_configurations, read_excel_info};
@@ -69,22 +68,21 @@ pub async fn start(parser_result: ParserResult) {
             extract_and_confirm_again(valid_configurations);
 
             let xls_files = read_all_excel_files();
-            let len_excel_files = xls_files.len();
-            let jobs = len_excel_files;
-            let workers = jobs / 2;
+            // let jobs =  xls_files.len();
+            // let workers = jobs / 2;
 
-            let (_, (sender, receiver)) =
-                match thread_helper::create_threadpool_jobs::<usize>(jobs, workers) {
-                    Ok(values) => values,
-                    Err(e) => {
-                        logger::error(&format!("error in create pool: {:?}", e));
-                        panic!()
-                    }
-                };
+            // let (_, (sender, receiver)) =
+            //     match thread_helper::create_threadpool_jobs::<usize>(jobs, workers) {
+            //         Ok(values) => values,
+            //         Err(e) => {
+            //             logger::error(&format!("error in create pool: {:?}", e));
+            //             panic!()
+            //         }
+            //     };
 
             for xls_file in xls_files {
                 {
-                    let clone_sender = sender.clone();
+                    // let clone_sender = sender.clone();
                     let xls_file_clone = xls_file.clone();
                     let excel_config_clone = &excel_config.clone();
                     let database_clone = database.clone();
@@ -93,15 +91,15 @@ pub async fn start(parser_result: ParserResult) {
                         xls_file_clone,
                         excel_config_clone,
                         &database_clone,
-                        clone_sender,
+                        // clone_sender,
                     )
                     .await
                 }
             }
 
-            let completed_jobs = receiver.iter().skip(jobs).fold(0, |a, b| a + b);
+            // let completed_jobs = receiver.iter().skip(jobs).fold(0, |a, b| a + b);
             successln("All jobs has been completed...");
-            logger::info(&format!("number of '{}' is completed", completed_jobs));
+            // logger::info(&format!("number of '{}' is completed", completed_jobs));
         } else {
             errorln("your answer is considered as NO! please write a capital letter 'Y' if you mean 'yes'");
         }
@@ -115,7 +113,7 @@ async fn excel_into_db(
     xls_file: PathBuf,
     excel_config: &ExcelInfo,
     database: &Database,
-    sender: Sender<usize>,
+    // sender: Sender<usize>,
 ) {
     warningln(&format!("start to read from file : {:?}", xls_file));
 
@@ -135,7 +133,6 @@ async fn excel_into_db(
         let database_result = db::mongo::insert_time_from_excel(database, new_excel_info).await;
         match database_result {
             Ok(()) => {
-
             },
             Err(e) => {
                 logger::error(&format!("error in insert into database: {:?}", e));
@@ -143,16 +140,16 @@ async fn excel_into_db(
         }
     }
 
-    match sender.send(1) {
-        Ok(a) => a,
-        Err(e) => {
-            logger::error(&format!(
-                "ERROR in read file : {:?} with error : {:?}",
-                xls_file, e
-            ));
-            ()
-        }
-    }
+    // match sender.send(1) {
+    //     Ok(a) => a,
+    //     Err(e) => {
+    //         logger::error(&format!(
+    //             "ERROR in read file : {:?} with error : {:?}",
+    //             xls_file, e
+    //         ));
+    //         ()
+    //     }
+    // }
 }
 
 fn extract_and_confirm_again(valid_configurations: String) {

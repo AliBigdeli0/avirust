@@ -1,11 +1,10 @@
 use calamine::{open_workbook, DataType, Reader, Xls};
 use chrono::{DateTime, Utc};
-use entity::dto::excel_dto::{ExcelColumnInfo, ExcelInfo};
+use entity::dto::excel_dto::{ExcelColumnInfo, ExcelInfo, IGNORE_CODE};
 
 const DATE_COLUMN_INDEX: usize = 0;
 const TIME_COLUMN_INDEX: usize = 1;
 const START_ROW: usize = 5;
-const IGNORE_CODE: &str = "-";
 
 pub fn read_excel_info(
     file_path: Box<&str>,
@@ -42,19 +41,28 @@ pub fn read_from_excels(
         let mut filled_excel_info = ExcelInfo::new();
         navigate_columns(row, |index_column, column| {
             if column.is_empty() {
-                return Ok(());
+                return Err("the cell is empty".into());
             }
 
             if index_column == DATE_COLUMN_INDEX || index_column == TIME_COLUMN_INDEX {
                 if index_column == DATE_COLUMN_INDEX {
-                    let date = fetch_as_date(&column.as_string())?;
+                    
+                    let date = match fetch_as_date(column.get_string()) {
+                        Ok(value) => value,
+                        Err(e) => {
+                            logger::error(&format!("error in : {:?}", e));
+                            common::time_helper::get_now_utc()
+                        }
+                    };
                     filled_excel_info.set_date(date);
                 }
             } else {
                 let value_result = fetch_as_value(column.as_string());
 
                 if let Ok(value) = value_result {
-                    filled_excel_info.set_value(index_column, value);
+                    if base_info.list_items[index_column].code != IGNORE_CODE {
+                        filled_excel_info.set_value(index_column, value);
+                    }
                 } else {
                     logger::error(&format!(
                         "error in read data from excel with following information: {}, {}, {}",
@@ -86,16 +94,14 @@ fn fetch_as_value(column_value: Option<String>) -> Result<String, Box<dyn std::e
     }
 }
 
-fn fetch_as_date(
-    date_str_opt: &Option<String>,
-) -> Result<DateTime<Utc>, Box<dyn std::error::Error>> {
+fn fetch_as_date(date_str_opt: Option<&str>) -> Result<DateTime<Utc>, Box<dyn std::error::Error>> {
     if let Some(date_str) = date_str_opt {
         let date_result = common::time_helper::convert_string_to_local(date_str);
         if let Ok(date) = date_result {
             let utc_date = common::time_helper::convert_local_to_utc(date);
             Ok(utc_date)
         } else {
-            Err("error in convert string to local date".into())
+            Err(format!("error in convert string to local date: {}", date_str).into())
         }
     } else {
         Err("error in convert date to str".into())
@@ -121,7 +127,6 @@ where
     F: FnMut(usize, &[DataType]) -> Result<(), Box<dyn std::error::Error>>,
 {
     let mut workbook: Xls<_> = open_workbook(*excel_path)?;
-
     if let Some(Ok(range)) = workbook.worksheet_range_at(0) {
         for (index, row) in range.rows().enumerate() {
             natigator(index, row)?;
