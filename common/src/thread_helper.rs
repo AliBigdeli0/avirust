@@ -1,8 +1,16 @@
 //thread helper
+use futures_cpupool::CpuPool;
 use std::sync::mpsc::{channel, Receiver, Sender};
 use threadpool::ThreadPool;
 
-pub fn create_jobs_jobs<T>(
+pub fn create_cpupool() -> CpuPool {
+    let pool = CpuPool::new_num_cpus();
+
+    pool
+}
+
+// ==================================
+pub fn create_threadpool_jobs<T>(
     jobs_num: usize,
     worker_num: usize,
 ) -> Result<(ThreadPool, (Sender<T>, Receiver<T>)), Box<dyn std::error::Error>> {
@@ -16,23 +24,27 @@ pub fn create_jobs_jobs<T>(
     Ok((pool, (sender, reciever)))
 }
 
+// ==================================
+
 #[cfg(test)]
-mod test_thread_helper {    
+mod test_thread_helper {
     use super::*;
 
     #[test]
     fn test_thread_pool() {
-        const JOBS: usize = 4; 
+        const JOBS: usize = 4;
         const WORKERS: usize = 2;
-        let (pool, (sender,receiver)) = create_jobs_jobs::<u8>(JOBS, WORKERS).unwrap();
+        let (pool, (sender, receiver)) = create_threadpool_jobs::<u8>(JOBS, WORKERS).unwrap();
 
         for _ in 0..JOBS {
             let sender_clone = sender.clone();
-            pool.execute(move ||{
-                sender_clone.send(1).expect("channel will be there waiting for the pool");
+            pool.execute(move || {
+                sender_clone
+                    .send(1)
+                    .expect("channel will be there waiting for the pool");
             });
         }
 
-        assert_eq!(receiver.iter().take(JOBS).fold(0, |a,b| a+b), 4)
+        assert_eq!(receiver.iter().take(JOBS).fold(0, |a, b| a + b), 4)
     }
 }

@@ -12,4 +12,5 @@ entity = { version = "0.1.0", path = "../entity" }
 excel = { version = "0.1.0", path = "../excel" }
 logger = { version = "0.1.0", path = "../logger" }
 mongodb = "2.7.1"
+futures = "0.3.29"
 

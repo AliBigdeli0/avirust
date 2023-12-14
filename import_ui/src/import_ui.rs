@@ -1,8 +1,12 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, sync::mpsc::Sender};
 
-use common::{file_helper::*, print_helper::*};
+use common::{
+    file_helper::*,
+    print_helper::{*},
+    thread_helper,
+};
 use entity::{dto::excel_dto::ExcelInfo, model::db::Well, serializer_helper::read_from_file};
-use excel::excel_helper::{check_configurations, read_excel_info};
+use excel::excel_helper::{self, check_configurations, read_excel_info};
 use mongodb::Database;
 
 pub struct ParserResult {
@@ -23,10 +27,10 @@ pub async fn start(parser_result: ParserResult) {
     let (_, database) = db::mongo::init().await;
 
     //test read from database
-    let collection_name = "c_2345415781_23_10_23";
-    let _ = db::mongo::read_from_time_data(database.clone(), collection_name)
-        .await
-        .unwrap();
+    // let collection_name = "c_2345415781_23_10_23";
+    // let _ = db::mongo::read_from_time_data(database.clone(), collection_name)
+    //     .await
+    //     .unwrap();
 
     // if check file switched
     if parser_result.check_file {
@@ -65,13 +69,39 @@ pub async fn start(parser_result: ParserResult) {
             extract_and_confirm_again(valid_configurations);
 
             let xls_files = read_all_excel_files();
+            let len_excel_files = xls_files.len();
+            let jobs = len_excel_files;
+            let workers = jobs / 2;
 
-            
-            for xlc_file in xls_files {
+            let (_, (sender, receiver)) =
+                match thread_helper::create_threadpool_jobs::<usize>(jobs, workers) {
+                    Ok(values) => values,
+                    Err(e) => {
+                        logger::error(&format!("error in create pool: {:?}", e));
+                        panic!()
+                    }
+                };
+
+            for xls_file in xls_files {
                 {
-                    println!("{:?}", xlc_file);
+                    let clone_sender = sender.clone();
+                    let xls_file_clone = xls_file.clone();
+                    let excel_config_clone = &excel_config.clone();
+                    let database_clone = database.clone();
+
+                    excel_into_db(
+                        xls_file_clone,
+                        excel_config_clone,
+                        &database_clone,
+                        clone_sender,
+                    )
+                    .await
                 }
             }
+
+            let completed_jobs = receiver.iter().skip(jobs).fold(0, |a, b| a + b);
+            successln("All jobs has been completed...");
+            logger::info(&format!("number of '{}' is completed", completed_jobs));
         } else {
             errorln("your answer is considered as NO! please write a capital letter 'Y' if you mean 'yes'");
         }
@@ -79,6 +109,50 @@ pub async fn start(parser_result: ParserResult) {
 
     successln("DONE!");
     logger::info("import data has done!");
+}
+
+async fn excel_into_db(
+    xls_file: PathBuf,
+    excel_config: &ExcelInfo,
+    database: &Database,
+    sender: Sender<usize>,
+) {
+    warningln(&format!("start to read from file : {:?}", xls_file));
+
+    let excel_config_clone = &mut excel_config.clone();
+    let excel_info_list = match excel_helper::read_from_excels(
+        Box::new(xls_file.to_str().unwrap()),
+        excel_config_clone,
+    ) {
+        Ok(t) => t,
+        Err(e) => {
+            logger::error(&format!("error in read excel file: {:?}", e));
+            vec![]
+        }
+    };
+
+    for new_excel_info in excel_info_list {
+        let database_result = db::mongo::insert_time_from_excel(database, new_excel_info).await;
+        match database_result {
+            Ok(()) => {
+
+            },
+            Err(e) => {
+                logger::error(&format!("error in insert into database: {:?}", e));
+            }
+        }
+    }
+
+    match sender.send(1) {
+        Ok(a) => a,
+        Err(e) => {
+            logger::error(&format!(
+                "ERROR in read file : {:?} with error : {:?}",
+                xls_file, e
+            ));
+            ()
+        }
+    }
 }
 
 fn extract_and_confirm_again(valid_configurations: String) {

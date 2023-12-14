@@ -35,7 +35,7 @@ impl ExcelColumnInfo {
 }
 
 // ----------------------------------
-#[derive(Debug,Deserialize, Serialize)]
+#[derive(Debug,Deserialize, Serialize, Clone)]
 pub struct  ExcelInfo {
     well_id: String,
     well_name: String,
