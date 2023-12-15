@@ -85,7 +85,7 @@ impl TimeData {
 
     pub fn generate_collection_name(id: &str, date: ChronoDateTime<Utc>) -> String {
         let year = date.year() - START_DATE;
-        format!("z_z_{}_{:02}_{:02}_{:02}",id, year, date.month(), date.day())
+        format!("c_{}_{:02}_{:02}_{:02}",id, year, date.month(), date.day())
     }
 
 
@@ -116,12 +116,12 @@ mod test_db {
         let utc = common::time_helper::create_datetime_utc(2023, 10, 30, 12, 0, 0);
          
         let date_str = TimeData::generate_collection_name("tt", utc);
-        assert_eq!(date_str, "z_z_tt_23_10_30");
+        assert_eq!(date_str, "c_tt_23_10_30");
 
         let utc = common::time_helper::create_datetime_utc(2023, 3, 4, 12, 0, 0);
          
         let date_str = TimeData::generate_collection_name("tt", utc);
-        assert_eq!(date_str, "z_z_tt_23_03_04");
+        assert_eq!(date_str, "c_tt_23_03_04");
     }
 
     #[test]
