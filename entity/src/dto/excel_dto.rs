@@ -81,7 +81,7 @@ impl ExcelInfo {
 
         if let Some(uv) = value {
             excel_info.value = uv;
-        };
+        }
 
         if !self.list_items.iter().any(|x| x.hash == excel_info.hash) {
             self.list_items.push(excel_info);
@@ -93,10 +93,9 @@ impl ExcelInfo {
     }
 
     pub fn write_into_file(&mut self) {
-        let excel_file_name = common::file_helper::generate_yaml_extention(format!(
-            "{}_{}",
-            self.well_name, self.well_id
-        ));
+        let excel_file_name = common::file_helper::generate_yaml_extention(
+            format!("{}_{}", self.well_name, self.well_id)
+        );
         let excel_file_path_buff = PathBuf::from(&excel_file_name);
         let excel_full_path = common::file_helper::import_path().join(excel_file_path_buff);
         write_in_file_if_not_exist(excel_full_path, &self).unwrap();
@@ -144,7 +143,7 @@ mod test_excel_dto {
         mock_excel_info.append_value(
             "ali".to_string(),
             "mehran".to_string(),
-            Some("value".to_string()),
+            Some("value".to_string())
         );
 
         mock_excel_info.append("amir".to_string(), "hani".to_string());
@@ -153,9 +152,17 @@ mod test_excel_dto {
 
         let hash = mock_excel_info.to_hash();
         assert_eq!(hash.len(), mock_excel_info.list_items.len());
-        assert_eq!(
-            hash.get("mehran").unwrap(),
-            &mock_excel_info.list_items.get(0).unwrap().value
+        assert_eq!(hash.get("mehran").unwrap(), &mock_excel_info.list_items.get(0).unwrap().value);
+
+        mock_excel_info.append_value(
+            "ignored_value".to_string(),
+            IGNORE_CODE.to_string(),
+            Some("new_value".to_string())
         );
+
+        let ignored_hash = mock_excel_info.to_hash();
+
+        println!("{:?}", ignored_hash);
+        assert_eq!(ignored_hash.len(), mock_excel_info.list_items.len() - 1);
     }
 }

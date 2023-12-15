@@ -11,6 +11,7 @@ use mongodb::Database;
 pub struct ParserResult {
     pub check_file: bool,
     pub start_program: bool,
+    pub delete_database: bool, 
 }
 
 pub async fn start(parser_result: ParserResult) {
@@ -78,9 +79,10 @@ pub async fn start(parser_result: ParserResult) {
             }
             
             println!();
-            // let completed_jobs = receiver.iter().skip(jobs).fold(0, |a, b| a + b);
             successln("All jobs has been completed...");
-            // logger::info(&format!("number of '{}' is completed", completed_jobs));
+        } else if parser_result.delete_database {
+            errorln("NOTE: all Deleted data CAN NOT be recovered..."); 
+            
         } else {
             errorln("your answer is considered as NO! please write a capital letter 'Y' if you mean 'yes'");
         }
@@ -94,7 +96,6 @@ async fn excel_into_db(
     xls_file: PathBuf,
     excel_config: &ExcelInfo,
     database: &Database,
-    // sender: Sender<usize>,
 ) {
     warningln(&format!("start to read from file : {:?}", xls_file));
 
