@@ -110,11 +110,13 @@ async fn excel_into_db(
         }
     };
 
+    let len_list_info = excel_info_list.len();
     for (index, new_excel_info) in excel_info_list.iter().enumerate() {
-        print_insert_status(index);
+        
         let database_result = db::mongo::insert_time_from_excel(database, new_excel_info.to_owned()).await;
         match database_result {
             Ok(()) => {
+                draw_progressbar(index, len_list_info);
             },
             Err(e) => {
                 logger::error(&format!("error in insert into database: {:?}", e));
@@ -122,19 +124,6 @@ async fn excel_into_db(
         }
     }
 
-}
-
-fn print_insert_status(index: usize) {
-    let progress_bar = match index % 5 {
-        0 => '|',
-        1 => '/',
-        2 => '-',
-        3 => '|',
-        4 => '/',
-        _ => '|',
-    };
-
-    success(&format!("\r{} inserting to db", progress_bar));
 }
 
 fn extract_and_confirm_again(valid_configurations: String) {
