@@ -1,0 +1,4 @@
+
+# remove all mongodb collections what are started with "z_z_"
+
+# db.getCollectionNames().forEach( (name) => { if(name.startsWith("z_z_")) { db[name].drop(); } } )
