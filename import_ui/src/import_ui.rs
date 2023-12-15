@@ -1,8 +1,8 @@
 use std::path::PathBuf;
 
-use common::{ file_helper::*, print_helper::{ * } };
-use entity::{ dto::excel_dto::ExcelInfo, model::db::Well, serializer_helper::read_from_file };
-use excel::excel_helper::{ self, check_configurations, read_excel_info };
+use common::{file_helper::*, print_helper::*};
+use entity::{dto::excel_dto::ExcelInfo, model::db::Well, serializer_helper::read_from_file};
+use excel::excel_helper::{self, check_configurations, read_excel_info};
 use mongodb::Database;
 
 pub struct ParserResult {
@@ -10,6 +10,14 @@ pub struct ParserResult {
     pub start_program: bool,
     pub delete_database: bool,
 }
+
+#[derive(PartialEq)]
+enum DatabaseMode {
+    Add = 1,
+    Remove = 2,
+}
+
+// =================================================
 
 pub async fn start(parser_result: ParserResult) {
     logger::init();
@@ -36,19 +44,16 @@ pub async fn start(parser_result: ParserResult) {
 
         excel_obj.write_into_file();
     } else if parser_result.start_program {
-        let selected_file = select_from_one_yaml_file();
+        let excel_config = read_config_yaml();
 
-        println!("the selected file is: {:?}", selected_file);
-
-        let excel_config: &ExcelInfo = &read_from_file(*selected_file.to_owned());
-        print_excel_obj_info(excel_config);
+        print_excel_obj_info(excel_config.as_ref());
 
         let ch = print_and_confirm_start_program();
 
         if ch == YES {
             successln("confirmed, going to parse configurations");
 
-            let valid_configurations = match check_configurations(excel_config) {
+            let valid_configurations = match check_configurations(excel_config.as_ref()) {
                 Ok(str) => str,
                 Err(err) => {
                     errorln(err.as_str());
@@ -58,17 +63,7 @@ pub async fn start(parser_result: ParserResult) {
 
             extract_and_confirm_again(valid_configurations);
 
-            let xls_files: Vec<PathBuf> = read_all_excel_files();
-
-            for xls_file in xls_files {
-                {
-                    let xls_file_clone = xls_file.clone();
-                    let excel_config_clone = &excel_config.clone();
-                    let database_clone = database.clone();
-
-                    excel_into_db(xls_file_clone, excel_config_clone, &database_clone).await;
-                }
-            }
+            insert_into_db(excel_config.as_ref(), database).await;
 
             println!();
             successln("All jobs has been completed...");
@@ -78,7 +73,7 @@ pub async fn start(parser_result: ParserResult) {
             );
         }
     } else if parser_result.delete_database {
-        delete_database().await;
+        delete_database(&database).await;
     } else {
         errorln("nothing to do, run -h/--help to view available swithes...");
     }
@@ -87,24 +82,74 @@ pub async fn start(parser_result: ParserResult) {
     logger::info("import data has done!");
 }
 
-async fn delete_database() {
+fn read_config_yaml() -> Box<ExcelInfo> {
+    let selected_file = select_from_one_yaml_file();
+
+    println!("the selected file is: {:?}", selected_file);
+
+    let excel_config: ExcelInfo = read_from_file(*selected_file.to_owned());
+    Box::new(excel_config)
+}
+
+async fn insert_into_db(excel_config: &ExcelInfo, database: Database) {
+    let xls_files: Vec<PathBuf> = read_all_excel_files();
+
+    for xls_file in xls_files {
+        {
+            let xls_file_clone = xls_file.clone();
+            let excel_config_clone = &excel_config.clone();
+            let database_clone = database.clone();
+
+            excel_into_db(xls_file_clone, excel_config_clone, &database_clone).await;
+        }
+    }
+}
+
+async fn delete_database(database: &Database) {
     errorln(
-        "Note: all data in excel files will be deleted from database and CAN NOT be recovered!!!!!"
+        "Note: all data in excel files will be deleted from database and CAN NOT be recovered!!!!!",
     );
 
-    let answer = confirm_message("Are you sure about that?");
+    let answer = confirm_message("Are you sure you want to delete data from database?");
     if answer == NO {
-        panic!("the program will break!")
+        panic!("the program will break!...")
+    }
+
+    let excel_config = read_config_yaml();
+    let xls_files: Vec<PathBuf> = read_all_excel_files();
+
+    for xls_file in xls_files {
+        {
+            let xls_file_clone = xls_file.clone();
+            let excel_config_clone = excel_config.clone();
+            let database_clone = database.clone();
+
+            excel_remove_db(xls_file_clone, excel_config_clone.as_ref(), &database_clone).await;
+        }
     }
 }
 
 async fn excel_into_db(xls_file: PathBuf, excel_config: &ExcelInfo, database: &Database) {
     warningln(&format!("start to read from file : {:?}", xls_file));
 
+    navigate_excel_files(xls_file, excel_config, database, DatabaseMode::Add).await;
+}
+
+async fn excel_remove_db(xls_file: PathBuf, excel_config: &ExcelInfo, database: &Database) {
+    navigate_excel_files(xls_file, excel_config, database, DatabaseMode::Remove).await;
+}
+
+async fn navigate_excel_files(
+    xls_file: PathBuf,
+    excel_config: &ExcelInfo,
+    database: &Database,
+    mode: DatabaseMode,
+) {
     let excel_config_clone = &mut excel_config.clone();
-    let excel_info_list = match
-        excel_helper::read_from_excels(Box::new(xls_file.to_str().unwrap()), excel_config_clone)
-    {
+    let excel_info_list = match excel_helper::read_from_excels(
+        Box::new(xls_file.to_str().unwrap()),
+        excel_config_clone,
+    ) {
         Ok(t) => t,
         Err(e) => {
             logger::error(&format!("error in read excel file: {:?}", e));
@@ -114,19 +159,31 @@ async fn excel_into_db(xls_file: PathBuf, excel_config: &ExcelInfo, database: &D
 
     let len_list_info = excel_info_list.len();
     for (index, new_excel_info) in excel_info_list.iter().enumerate() {
-        let database_result = db::mongo::insert_time_from_excel(
-            database,
-            new_excel_info.to_owned()
-        ).await;
-        match database_result {
-            Ok(()) => {
-                draw_progressbar(index, len_list_info);
+
+        if mode == DatabaseMode::Add {
+            let database_result =
+                db::mongo::insert_time_from_excel(database, new_excel_info.to_owned()).await;
+            match database_result {
+                Ok(()) => (),
+                Err(e) => {
+                    logger::error(&format!("error in insert into database: {:?}", e));
+                }
             }
-            Err(e) => {
-                logger::error(&format!("error in insert into database: {:?}", e));
+        } else if mode == DatabaseMode::Remove {
+            let database_result =
+                db::mongo::remove_time_from_excel(database, new_excel_info.to_owned()).await;
+            match database_result {
+                Ok(()) => (),
+                Err(e) => {
+                    logger::error(&format!("error in remove from database: {:?}", e));
+                }
             }
         }
+
+        draw_progressbar(index, len_list_info);
     }
+
+    println!();
 }
 
 fn extract_and_confirm_again(valid_configurations: String) {
@@ -142,13 +199,11 @@ fn extract_and_confirm_again(valid_configurations: String) {
 fn print_excel_obj_info(excel_config: &ExcelInfo) {
     println!();
     println!();
-    warningln(
-        &format!(
-            "well info=> name: {}, ID:{}",
-            excel_config.get_well_name(),
-            excel_config.get_well_id()
-        )
-    );
+    warningln(&format!(
+        "well info=> name: {}, ID:{}",
+        excel_config.get_well_name(),
+        excel_config.get_well_id()
+    ));
 }
 
 fn print_and_confirm_start_program() -> char {
@@ -160,17 +215,16 @@ fn print_and_confirm_start_program() -> char {
 
 fn select_from_one_yaml_file<'a>() -> Box<PathBuf> {
     let import_path = import_path();
-    let yaml_files: Vec<PathBuf> = all_files_in_directory(
-        &import_path,
-        Some(YAML_FILE_EXTENSION)
-    ).unwrap();
+    let yaml_files: Vec<PathBuf> =
+        all_files_in_directory(&import_path, Some(YAML_FILE_EXTENSION)).unwrap();
     let selected_file: &PathBuf = select_from_list(&yaml_files, |index, file| {
         if let Some(file_name) = file.file_name() {
             if let Some(file_name_str) = file_name.to_str() {
                 println!("{}. {:?}", index + 1, file_name_str);
             }
         }
-    }).unwrap();
+    })
+    .unwrap();
     Box::new(selected_file.clone())
 }
 
@@ -186,7 +240,10 @@ fn parse_files_into_excel_obj(file_list: Vec<std::path::PathBuf>, excel_obj: &mu
 fn read_all_excel_files() -> Vec<std::path::PathBuf> {
     let import_path = import_path();
     let file_list = all_files_in_directory(&import_path, Some(EXCEL_FILE_EXTENSION)).unwrap();
-    logger::info(&format!("number of excel files in the import directory: [{}]", file_list.len()));
+    logger::info(&format!(
+        "number of excel files in the import directory: [{}]",
+        file_list.len()
+    ));
     file_list
 }
 
@@ -201,7 +258,8 @@ async fn select_well_from_wells<'a>(database: Database) -> &'a Well {
     let wells: &'a Vec<Well> = db::mongo::read_all_wells(database).await.unwrap();
     let well: &'a Well = select_from_list(&wells, |index, well| {
         println!("{}. {} ({})", index + 1, well.name, well.id);
-    }).unwrap();
+    })
+    .unwrap();
     well
 }
 

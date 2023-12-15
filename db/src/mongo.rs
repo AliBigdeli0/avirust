@@ -1,3 +1,4 @@
+
 use entity::{dto::excel_dto::ExcelInfo, model::db::*, serializer_helper::serialize_bson};
 use mongodb::{bson::doc, error::Error, options::ClientOptions, Client, Cursor, Database};
 
@@ -76,6 +77,27 @@ pub async fn insert_time_from_excel(
     database
         .collection(&column_name)
         .insert_one(bson_data, None)
+        .await?;
+
+    Ok(())
+}
+
+pub async fn remove_time_from_excel(
+    database: &Database,
+    excel_data: ExcelInfo,
+) -> Result<(), Error> {
+
+    let time_data = &TimeData::new(excel_data.date, "not_important".to_string());
+
+    let column_name = TimeData::generate_collection_name(excel_data.get_well_id(), excel_data.date);
+
+    let filter = doc! {
+        "d": time_data.date
+    };
+
+    database
+        .collection::<TimeData>(&column_name)
+        .delete_one(filter, None)
         .await?;
 
     Ok(())
