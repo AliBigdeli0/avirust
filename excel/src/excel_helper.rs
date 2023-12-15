@@ -1,5 +1,6 @@
 use calamine::{open_workbook, DataType, Reader, Xls};
 use chrono::{DateTime, NaiveDateTime, Utc};
+use common::time_helper;
 use entity::dto::excel_dto::{ExcelColumnInfo, ExcelInfo, IGNORE_CODE};
 
 const DATE_COLUMN_INDEX: usize = 0;
@@ -56,19 +57,23 @@ pub fn read_from_excels(
                     filled_excel_info.set_date(date);
                 }
             } else {
-                let value_result = fetch_as_value(column);
-
-                if let Ok(value) = value_result {
-                    if index_column < base_info.list_items.len() && base_info.list_items[index_column].code != IGNORE_CODE {
-                        filled_excel_info.set_value(index_column, value);
+                let excel_info_column_index =
+                    index_column - DATE_COLUMN_INDEX - TIME_COLUMN_INDEX - 1;
+                if excel_info_column_index < base_info.list_items.len()
+                    && base_info.list_items[excel_info_column_index].code != IGNORE_CODE
+                {
+                    let value_result = fetch_as_value(column);
+                    if let Ok(value) = value_result {
+                        filled_excel_info.set_value(excel_info_column_index, value);
+                    } else {
+                        logger::error(&format!(
+                            "error in read data from excel with following information: {}, {} in [{},{}]",
+                            base_info.get_well_id(),
+                            base_info.get_well_name(),
+                            index_row,
+                            index_column,
+                        ));
                     }
-                } else {
-                    logger::error(&format!(
-                        "error in read data from excel with following information: {}, {}, {}",
-                        base_info.get_well_id(),
-                        base_info.get_well_name(),
-                        index_row
-                    ));
                 }
             }
 
@@ -86,10 +91,10 @@ fn fetch_as_value(column_type: &DataType) -> Result<String, Box<dyn std::error::
         DataType::Float(x) => format!("{:?}", x),
         DataType::Int(x) => format!("{:?}", x),
         DataType::String(x) => format!("{:?}", x),
-        DataType::Error(x)=> { 
+        DataType::Error(x) => {
             logger::error(&format!("error in get data from cell : {}", x));
             String::from("")
-        },
+        }
         _ => String::from(""),
     };
 
@@ -103,11 +108,12 @@ fn fetch_as_value(column_type: &DataType) -> Result<String, Box<dyn std::error::
 fn fetch_as_date(
     date_opt: Option<NaiveDateTime>,
 ) -> Result<DateTime<Utc>, Box<dyn std::error::Error>> {
-    if let Some(date) = date_opt {
-        let utc_date = date.and_utc();
-        Ok(utc_date)
+    let local_date_time_result = time_helper::convert_naive_to_local(date_opt);
+
+    if let Ok(local_date_time) = local_date_time_result {
+        Ok(time_helper::convert_local_to_utc(local_date_time))
     } else {
-        Err("error in convert date to str".into())
+        Err("error in convert naive date to local str".into())
     }
 }
 

@@ -58,6 +58,17 @@ pub fn convert_local_to_utc(datetime: DateTime<Local>) -> DateTime<Utc> {
     datetime.with_timezone(&Utc)
 }
 
+pub fn convert_naive_to_local(naive_opt: Option<NaiveDateTime>) -> Result<DateTime<Local>, Box<dyn std::error::Error>> {
+    if let Some(naive_date_time) = naive_opt {
+        match naive_date_time.and_local_timezone(Local).single() {
+           Some(s) => Ok(s),
+           None => Err("can not convert to local datetime".into()) 
+        }
+    } else {
+        Err("naive data is empty".into())
+    }
+}
+
 #[cfg(test)]
 mod test_time_helper {
     use chrono::{Timelike, Datelike};
