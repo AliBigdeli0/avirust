@@ -13,7 +13,6 @@ members=[
     "utility/excel",
     "server/client",
     "server/ui",
-    "server/web_asm",
     "server/import_ui",
 ]
 
