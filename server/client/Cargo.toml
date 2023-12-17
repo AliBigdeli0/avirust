@@ -1,0 +1,13 @@
+[package]
+name = "client"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+common = { version = "0.1.0", path = "../../utility/common" }
+logger = { version = "0.1.0", path = "../../utility/logger" }
+entity = { version = "0.1.0", path = "../../utility/entity" }
+config = { version = "0.1.0", path = "../../utility/config" }
+db = { version = "0.1.0", path = "../../utility/db" }
+web = { version = "0.1.0", path = "../../utility/web" }
+tokio = { version = "1.34.0", features = ["full"] }

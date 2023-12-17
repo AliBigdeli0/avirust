@@ -23,7 +23,7 @@ copy_opengl_file::
 copy_www_files::
 	@rm -rf $(LINUX_ROOT_DEBUG_PATH)/static
 	@mkdir -p $(LINUX_ROOT_DEBUG_PATH)/static
-	@cp -r $(PWD)/client/static/* $(LINUX_ROOT_DEBUG_PATH)/static
+	@cp -r $(PWD)/offline_files/www/* $(LINUX_ROOT_DEBUG_PATH)/static
 
 
 

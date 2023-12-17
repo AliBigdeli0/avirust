@@ -1,20 +1,20 @@
 
 [workspace]
 resolver = "2"
-default-members = ["import_ui"]
+default-members = ["./server/import_ui"]
 
 members=[
-    "common",
-    "entity",
-    "config",
-    "logger",
-    "db",
-    "web",
-    "ui",
-    "client",
-    "web_asm",
-    "excel",
-    "import_ui",
+    "utility/common",
+    "utility/entity",
+    "utility/config",
+    "utility/logger",
+    "utility/db",
+    "utility/web",
+    "utility/excel",
+    "server/client",
+    "server/ui",
+    "server/web_asm",
+    "server/import_ui",
 ]
 
 [profile.win]
