@@ -28,4 +28,8 @@ copy_www_files::
 	@cp -r $(PWD)/offline_files/www/* $(LINUX_ROOT_DEBUG_PATH)/static
 
 
+config_ui::
+	@cd $(PWD)/server/config_ui; make
+
+
 

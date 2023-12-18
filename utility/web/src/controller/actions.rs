@@ -1,11 +1,12 @@
+use entity::dto::default_dto::IsReady;
 use rocket::{
     get,
-    response::content::RawJson,
-    response::status
+    serde::json::Json
 };
-use rocket::http::Status;
 
 #[get("/is_ready")]
-pub fn is_ready() -> status::Custom<RawJson<&'static str>> {
-    status::Custom(Status::ImATeapot,RawJson("{'hi': 'world'}"))
+pub async fn is_ready() -> Json<IsReady<'static>> {
+    let is_ready: IsReady<'static>= IsReady::default();
+    println!("the is ready: {:?}", is_ready);
+    Json(is_ready)
 }

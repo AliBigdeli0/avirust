@@ -5,7 +5,7 @@
       "label": "build",
       "type": "shell",
       "command": "cargo",
-      "args": ["build"],
+      "args": ["build", "-p", "client"],
       "group": {
         "kind": "build",
         "isDefault": true

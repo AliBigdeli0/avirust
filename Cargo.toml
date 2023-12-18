@@ -14,6 +14,7 @@ members=[
     "server/client",
     "server/ui",
     "server/import_ui",
+    "server/config_ui",
 ]
 
 [profile.win]
