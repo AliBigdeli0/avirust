@@ -13,10 +13,10 @@ build_win_ui:: copy_opengl_file
 	@cargo build -p ui
 
 build_all:: copy_www_files test_all
-	@RUSTFLAGS='-C prefer-dynamic' cargo build --all
+	@cargo build --all
 
 test_all::
-	@RUSTFLAGS='-C prefer-dynamic' cargo test --all
+	@cargo test --all
 
 copy_opengl_file:: 
 	@mkdir -p $(LINUX_ROOT_DEBUG_PATH)

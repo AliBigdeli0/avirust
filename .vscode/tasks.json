@@ -1,5 +1,9 @@
 {
   "version": "2.0.0",
+  "group": {
+    "kind": "build",
+    "isDefault": true
+  },
   "tasks": [
     {
       "label": "build",
@@ -13,7 +17,6 @@
       "options": {
         "cwd": "${workspaceFolder}",
         "env": {
-          "RUSTFLAGS":"-C prefer-dynamic"
         }
       },
       "dependsOn":"linux_per_build",

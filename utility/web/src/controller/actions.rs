@@ -7,6 +7,6 @@ use rocket::{
 #[get("/is_ready")]
 pub async fn is_ready() -> Json<IsReady<'static>> {
     let is_ready: IsReady<'static>= IsReady::default();
-    println!("the is ready: {:?}", is_ready);
+     
     Json(is_ready)
 }

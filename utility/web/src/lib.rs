@@ -1,4 +1,5 @@
 mod controller;
+mod middleware;
 
 #[macro_use] extern crate rocket;
 extern crate logger;
@@ -8,6 +9,8 @@ extern crate entity;
 use std::net::IpAddr;
 use rocket::config::Config;
 use rocket::fs::FileServer;
+
+
 use std::str::FromStr;
 
 pub fn get_version() -> &'static str {
@@ -29,6 +32,9 @@ pub async  fn run_wait() {
     if let Err(_err)  = rocket::custom(config)
         .mount("/api/v1", routes![
             controller::actions::is_ready
+        ])
+        .mount("/api/v1/admin", routes![
+            controller::admin::actions::is_ready
         ])
         .mount("/", FileServer::from("static/"))
         .launch()

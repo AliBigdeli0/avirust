@@ -5,7 +5,7 @@ use serde::Serialize;
 #[derive(Deserialize, Serialize, Debug)]
 pub struct  IsReady<'a> {
     id: usize ,
-    message: &'a str
+    pub message: &'a str
 }
 
 impl Default for IsReady<'_> {
