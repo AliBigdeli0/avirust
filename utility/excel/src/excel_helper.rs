@@ -120,7 +120,7 @@ pub fn read_from_excels(
                 {
                     let value_result = fetch_as_value(column);
                     if let Ok(value) = value_result {
-                        filled_excel_info.set_value(excel_info_column_index, if value.is_empty() { "0".to_string() } else { value });
+                        filled_excel_info.set_value(excel_info_column_index, if value.trim().is_empty() { "0".to_string() } else { value });
                     } else { 
                         logger::error(&format!(
                             "error in read data from excel with following information: {}, {} in [{},{}]",
