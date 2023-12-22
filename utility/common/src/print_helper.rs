@@ -47,29 +47,19 @@ pub fn draw_progressbar(current_value: usize, total: usize) {
 
     let mut stdout = StandardStream::stdout(ColorChoice::Auto);
 
-    print!("[");
+    print!("┃");
 
     for i in 0..bar_width {
-        let color = if i <= progress_width {
-            Color::Green
+        if i <= progress_width {
+            success("━");
         } else {
-            Color::White
-        };
-
-        stdout
-            .set_color(ColorSpec::new().set_fg(Some(color)))
-            .expect("Failed to set color");
-
-        if i < progress_width {
-            print!("█");
-        } else {
-            print!(" ");
+            print!("─");
         }
     }
 
     stdout.reset().expect("Failed to reset color");
 
-    print!("] {:.1}%\r", progress);
+    print!("┃ {:.1}%\r", progress + 1);
 
     io::stdout().flush().expect("Failed to flush stdout");
 }

@@ -2,7 +2,9 @@ use std::path::PathBuf;
 
 use common::{file_helper::*, print_helper::*};
 use entity::{dto::excel_dto::ExcelInfo, model::db::Well, serializer_helper::read_from_file};
-use excel::excel_helper::{self, check_configurations, read_excel_info};
+use excel::excel_helper::{
+    self, check_configurations, check_excel_info_with_others, read_excel_info,
+};
 use mongodb::Database;
 
 pub struct ParserResult {
@@ -159,7 +161,6 @@ async fn navigate_excel_files(
 
     let len_list_info = excel_info_list.len();
     for (index, new_excel_info) in excel_info_list.iter().enumerate() {
-
         if mode == DatabaseMode::Add {
             let database_result =
                 db::mongo::insert_time_from_excel(database, new_excel_info.to_owned()).await;
@@ -229,11 +230,32 @@ fn select_from_one_yaml_file<'a>() -> Box<PathBuf> {
 }
 
 fn parse_files_into_excel_obj(file_list: Vec<std::path::PathBuf>, excel_obj: &mut Box<ExcelInfo>) {
+    let first_file_to_fetch_data = file_list.first().unwrap();
+
+    if let Some(path_str) = first_file_to_fetch_data.to_str() {
+        print!("\r file  {:?}", path_str);
+        let _ = read_excel_info(Box::new(path_str), excel_obj).unwrap();
+    }
+
+    //check the headers
+    let mut has_error = false;
     for (index, file_path) in file_list.iter().enumerate() {
         if let Some(path_str) = file_path.to_str() {
-            print!("\r file [{}]: {:?}", index, path_str);
-            let _ = read_excel_info(Box::new(path_str), excel_obj).unwrap();
+            warningln(format!("file [{}]: {:?}", index, path_str).as_str());
+            match check_excel_info_with_others(Box::new(path_str), excel_obj) {
+                Ok(()) => (),
+                Err(err) => {
+                    let error_msg = Box::new(format!("{:?}", err));
+                    logger::error(&error_msg);
+                    has_error = true;
+                }
+            }
         }
+    }
+
+    if has_error {
+        errorln("ERROR: error in check files, check the logs");
+        panic!("error due to the check error");
     }
 }
 

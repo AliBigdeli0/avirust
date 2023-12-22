@@ -1,7 +1,20 @@
-pub trait ErrorToString<T> {
+
+pub trait ErrorTo<T> {
     fn to(&self) -> &T;
 }
 
+#[derive(Debug)]
+pub enum ExcelError {
+    Message(String)
+}
+
+impl ErrorTo<String> for ExcelError {
+    fn to(&self) -> &String {
+        match self {
+            Self::Message(ret_msg) =>  ret_msg,
+        }
+    }
+}
 
 #[cfg(test)] 
 mod test_errors { 
@@ -11,7 +24,7 @@ mod test_errors {
         Message(String)
     }
 
-    impl ErrorToString<String> for MockError {
+    impl ErrorTo<String> for MockError {
         
         fn to(&self) -> &String {
             match self {
