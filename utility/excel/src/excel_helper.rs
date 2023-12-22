@@ -8,7 +8,7 @@ use entity::{
 
 const DATE_COLUMN_INDEX: usize = 0;
 const TIME_COLUMN_INDEX: usize = 1;
-const START_ROW: usize = 2;
+const START_ROW: usize = 3;
 
 pub fn check_excel_info_with_others(
     excel_path: Box<&str>,
@@ -99,17 +99,19 @@ pub fn read_from_excels(
                 return Ok(());
             }
 
-            if index_column == DATE_COLUMN_INDEX || index_column == TIME_COLUMN_INDEX {
-                if index_column == DATE_COLUMN_INDEX {
-                    let date = match fetch_as_date(column.as_datetime()) {
-                        Ok(value) => value,
-                        Err(e) => {
-                            logger::error(&format!("error in : {:?}", e));
-                            common::time_helper::get_now_utc()
-                        }
-                    };
-                    filled_excel_info.set_date(date);
-                }
+            
+            if index_column == DATE_COLUMN_INDEX || index_column == TIME_COLUMN_INDEX{
+                let date = match fetch_as_date(column.as_datetime()) {
+                    Ok(value) => value,
+                    Err(e) => {
+                        logger::error(&format!("error in : {:?}", e));
+                        common::time_helper::get_now_utc()
+                    }
+                };
+
+                
+                if index_column == DATE_COLUMN_INDEX { filled_excel_info.set_date(date) } 
+                if index_column == TIME_COLUMN_INDEX  {filled_excel_info.set_time(date) };
             } else {
                 let excel_info_column_index =
                     index_column - DATE_COLUMN_INDEX - TIME_COLUMN_INDEX - 1;

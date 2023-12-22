@@ -3,7 +3,10 @@ use std::path::PathBuf;
 use std::vec;
 
 use chrono::DateTime;
+use chrono::Datelike;
+use chrono::Timelike;
 use chrono::Utc;
+use common::time_helper;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -66,6 +69,11 @@ impl ExcelInfo {
         self.date = date;
     }
 
+    pub fn set_time(&mut self , time: DateTime<Utc>) {
+        let date = self.date;
+        self.date = time_helper::create_datetime_utc(date.year(), date.month(), date.day(), time.hour(), time.minute(), time.second()); 
+    }
+
     pub fn set_value(&mut self, index: usize, value: String) {
         if !value.trim().is_empty() {
             self.list_items[index].value = value;
@@ -123,6 +131,10 @@ impl ExcelInfo {
 
 #[cfg(test)]
 mod test_excel_dto {
+
+    use chrono::Datelike;
+    use common::time_helper;
+
     use super::*;
 
     #[test]
@@ -164,5 +176,26 @@ mod test_excel_dto {
 
         println!("{:?}", ignored_hash);
         assert_eq!(ignored_hash.len(), mock_excel_info.list_items.len() - 1);
+    }
+
+    #[test]
+    fn  test_excel_date_time() {
+        let mut mock_excel = ExcelInfo::new(); 
+
+        mock_excel.set_date(time_helper::create_datetime_utc(2023, 12, 10, 1, 2, 3));   
+        assert_eq!(mock_excel.date.year(), 2023);
+        assert_eq!(mock_excel.date.month(), 12);
+        assert_eq!(mock_excel.date.day(), 10);
+        assert_eq!(mock_excel.date.hour(), 1);
+        assert_eq!(mock_excel.date.minute(), 2);
+        assert_eq!(mock_excel.date.second(), 3);
+
+        mock_excel.set_time(time_helper::create_datetime_utc(2022, 11, 9, 23, 20, 30));   
+        assert_eq!(mock_excel.date.year(), 2023);
+        assert_eq!(mock_excel.date.month(), 12);
+        assert_eq!(mock_excel.date.day(), 10);
+        assert_eq!(mock_excel.date.hour(), 23);
+        assert_eq!(mock_excel.date.minute(), 20);
+        assert_eq!(mock_excel.date.second(), 30);
     }
 }
