@@ -85,7 +85,9 @@ impl TimeData {
 
     pub fn generate_collection_name(id: &str, date: ChronoDateTime<Utc>) -> String {
         let year = date.year() - START_DATE;
-        format!("c_{}_{:02}_{:02}_{:02}",id, year, date.month(), date.day())
+        let month = date.month(); 
+        let day = date.day(); 
+        format!("c_{id}_{year:02}_{month:02}_{day:02}")
     }
 
 
