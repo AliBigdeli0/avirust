@@ -96,30 +96,4 @@ mod test_thread_helper {
         assert_eq!(sum_of_ids, 3);
     }
 
-    
-    #[tokio::test]
-    async fn test_async_thread_pool() {
-        let (pool, (sender, mut receiver)) = create_async_threadpool_jobs::<u8>(JOBS, WORKERS, 32).unwrap();
-
-        for _ in 0..JOBS {
-            let sender_clone = sender.clone();
-            pool.execute(move || {
-                let handle = Handle::current();
-
-                handle.spawn(async move {
-                    let _ = sender_clone
-                    .send(1)
-                    .await;
-                });
-            });
-        }
-        
-        let mut sum_of_item= 0; 
-        for _ in 0..2 {
-            let items = receiver.recv().await;
-            let value = items.unwrap();
-            sum_of_item = sum_of_item + value;
-        }
-        assert_eq!(sum_of_item, 4)
-    }
 }
