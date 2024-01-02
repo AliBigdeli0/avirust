@@ -5,7 +5,7 @@ use threadpool::ThreadPool;
 
 pub fn create_cpupool() -> CpuPool {
     let pool = CpuPool::new_num_cpus();
-
+    
     pool
 }
 
@@ -28,6 +28,9 @@ pub fn create_threadpool_jobs<T>(
 
 #[cfg(test)]
 mod test_thread_helper {
+    use std::thread;
+    use tokio::runtime::Handle; 
+    
     use super::*;
 
     #[test]
@@ -46,5 +49,32 @@ mod test_thread_helper {
         }
 
         assert_eq!(receiver.iter().take(JOBS).fold(0, |a, b| a + b), 4)
+    }
+
+    #[tokio::test]
+    async fn test_async_thread() {
+
+        let threads: Vec<_> = (0..3)
+            .map(|thread_id|{
+                let handle = Handle::current(); 
+                thread::spawn(move || {
+                    handle.spawn(async move {
+                        thread_id
+                    })
+                })
+            })
+            .collect();
+
+        let mut sum_of_ids = 0;
+        for t in threads {
+            let id  = t
+            .join()
+            .expect("error in join")
+            .await
+            .unwrap(); 
+
+            sum_of_ids = sum_of_ids + id; 
+        }
+        assert_eq!(sum_of_ids, 3);
     }
 }
