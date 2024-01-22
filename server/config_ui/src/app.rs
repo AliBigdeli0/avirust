@@ -1,6 +1,8 @@
+
+
 use egui::{Ui, Visuals, Button};
 
-use crate::forms::{HomeForm, BaseForms, WellMangement};
+use crate::{forms::{HomeForm, BaseForms, WellMangement}, utils};
 
 #[derive(Clone, Debug)]
 enum FormTypes {
@@ -24,9 +26,12 @@ pub struct AppTemplate {
     
     #[serde(skip)] 
     style: Visuals,
-
+    
     #[serde(skip)] 
     value: f32,
+
+     #[serde(skip)]
+    font_scale: f32,
 }
 
 impl Default for AppTemplate {
@@ -37,6 +42,7 @@ impl Default for AppTemplate {
             state: FormTypes::Home,
             home_form: Box::new(HomeForm::default()),
             well_management_form: Box::new(WellMangement::default()),
+            font_scale: 1.4,
         }
     }
 }
@@ -94,15 +100,19 @@ impl AppTemplate {
             FormTypes::WellManagement => self.well_management_form.as_mut(), 
         }
     }
+
 }
 
 
 impl eframe::App for AppTemplate {
+    
     fn save(&mut self, storage: &mut dyn eframe::Storage) {
         eframe::set_value(storage, eframe::APP_KEY, self);
     }
 
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+        utils::styles_helper::set_font_scale(ctx, self.font_scale);
+
         ctx.set_visuals(self.style.clone());
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
             egui::menu::bar(ui, |ui| {
