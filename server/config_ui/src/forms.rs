@@ -1,6 +1,13 @@
+use crate::utils::forms_helper::{self, ModalResult};
 use egui::{Grid, Window};
 
-use crate::utils::forms_helper;
+use crate::utils::logger_helper::log;
+
+macro_rules! console_log {
+    ($($t:tt)*) => (
+        log(&format_args!($($t)*).to_string())
+    )
+}
 
 pub trait BaseForms {
     fn show_controls(&mut self, _ctx: &egui::Context, _frame: &mut eframe::Frame);
@@ -8,11 +15,13 @@ pub trait BaseForms {
 }
 
 // ------------------------------------------
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct HomeForm {
-    open_modal: bool,
     open_message: bool,
+    open_modal: bool,
+    open_spinner: bool,
+    open_yes_no_message: bool,
 }
 
 impl BaseForms for HomeForm {
@@ -39,11 +48,19 @@ impl BaseForms for HomeForm {
                     }
                     grid_ui.end_row();
 
-                    let _ = grid_ui.button("here three");
-                    let _ = grid_ui.button("here four");
+                    if grid_ui.button("Open Yes No").clicked() {
+                        self.open_yes_no_message = true;
+                    }
+                    if grid_ui.button("Open Spinner").clicked() {
+                        self.open_spinner = true;
+                    }
                     grid_ui.end_row();
 
-                    let _ = grid_ui.button("here five");
+                    if grid_ui.button(" logger message ").clicked() {
+                        unsafe {
+                            console_log!("you clicked on this form");
+                        }
+                    }
                     let _ = grid_ui.button("here six");
                     grid_ui.end_row();
                 });
@@ -61,8 +78,33 @@ impl BaseForms for HomeForm {
                 });
             self.open_modal &= !close;
 
+            if self.open_spinner {
+                forms_helper::show_spinner(ctx, "waiting for the data...", &mut self.open_spinner);
+            }
+
+            if self.open_yes_no_message {
+                let modal_result = forms_helper::show_yes_no(
+                    ctx,
+                    "are you sure",
+                    "title",
+                    &mut self.open_yes_no_message,
+                );
+                if !matches!(modal_result, ModalResult::None) {
+                    if matches!(modal_result, ModalResult::Yes) {
+                        self.open_message = true;
+                    }
+                }
+            }
             if self.open_message {
-                forms_helper::show_info(ctx, "The data has been saved", "warning", &mut self.open_message);
+                let res = forms_helper::show_info(
+                    ctx,
+                    "The data has been saved",
+                    "info",
+                    &mut self.open_message,
+                );
+                if !matches!(res, ModalResult::None) {
+                    println!("the result is: ")
+                }
             }
         });
     }
