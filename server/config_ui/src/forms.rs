@@ -1,13 +1,6 @@
 use crate::utils::forms_helper::{self, ModalResult};
 use egui::{Grid, Window};
 
-use crate::utils::logger_helper::log;
-
-macro_rules! console_log {
-    ($($t:tt)*) => (
-        log(&format_args!($($t)*).to_string())
-    )
-}
 
 pub trait BaseForms {
     fn show_controls(&mut self, _ctx: &egui::Context, _frame: &mut eframe::Frame);
@@ -57,9 +50,7 @@ impl BaseForms for HomeForm {
                     grid_ui.end_row();
 
                     if grid_ui.button(" logger message ").clicked() {
-                        unsafe {
-                            console_log!("you clicked on this form");
-                        }
+
                     }
                     let _ = grid_ui.button("here six");
                     grid_ui.end_row();
