@@ -1,15 +1,15 @@
 mod controller;
 mod middleware;
 
-#[macro_use] extern crate rocket;
-extern crate logger;
+#[macro_use]
+extern crate rocket;
 extern crate config;
 extern crate entity;
+extern crate logger;
 
-use std::net::IpAddr;
 use rocket::config::Config;
 use rocket::fs::FileServer;
-
+use std::net::IpAddr;
 
 use std::str::FromStr;
 
@@ -21,21 +21,23 @@ pub fn init() {
     config::create_server_config_if_not_exist();
 }
 
-pub async  fn run_wait() {
-    let server_config= config::read_server_config().unwrap();
-    logger::info(&format!("going to listen to: {}:{}", server_config.server.listen, server_config.server.port));
+pub async fn run_wait() {
+    let server_config = config::read_server_config().unwrap();
+    logger::info(&format!(
+        "going to listen to: {}:{}",
+        server_config.server.listen, server_config.server.port
+    ));
 
     let mut config = Config::default();
     config.port = server_config.server.port as u16;
     config.address = IpAddr::from_str(&server_config.server.listen).unwrap();
 
-    if let Err(_err)  = rocket::custom(config)
-        .mount("/api/v1", routes![
-            controller::actions::is_ready
-        ])
-        .mount("/api/v1/admin", routes![
-            controller::admin::actions::is_ready
-        ])
+    if let Err(_err) = rocket::custom(config)
+        .mount("/api/v1", routes![controller::actions::is_ready])
+        .mount(
+            "/api/v1/admin",
+            routes![controller::admin::actions::is_ready],
+        )
         .mount("/", FileServer::from("static/"))
         .launch()
         .await
@@ -60,4 +62,3 @@ mod tests {
         assert!(ip_address.is_ipv4());
     }
 }
-

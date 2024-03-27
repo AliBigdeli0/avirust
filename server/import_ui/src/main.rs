@@ -1,8 +1,8 @@
-use import_ui::{ start, ParserResult };
-use argparse::{ ArgumentParser, StoreTrue };
+use argparse::{ArgumentParser, StoreTrue};
+use import_ui::{start, ParserResult};
 
-extern crate logger;
 extern crate db;
+extern crate logger;
 
 mod import_ui;
 
@@ -20,24 +20,30 @@ fn check_args() -> ParserResult {
         let mut parser = ArgumentParser::new();
         parser.set_description("use following commands to parser data");
 
-        parser
-            .refer(&mut check)
-            .add_option(&["-c", "--check"], StoreTrue, "Check files and create a config file");
+        parser.refer(&mut check).add_option(
+            &["-c", "--check"],
+            StoreTrue,
+            "Check files and create a config file",
+        );
 
-        parser
-            .refer(&mut start)
-            .add_option(&["-s", "--start"], StoreTrue, "Start write data into database");
+        parser.refer(&mut start).add_option(
+            &["-s", "--start"],
+            StoreTrue,
+            "Start write data into database",
+        );
 
-        parser
-            .refer(&mut delete)
-            .add_option(
-                &["-d", "--delete_database"],
-                StoreTrue,
-                "Clean all excel file content from database"
-            );
+        parser.refer(&mut delete).add_option(
+            &["-d", "--delete_database"],
+            StoreTrue,
+            "Clean all excel file content from database",
+        );
 
         parser.parse_args_or_exit();
     }
 
-    ParserResult { check_file: check, start_program: start, delete_database: delete }
+    ParserResult {
+        check_file: check,
+        start_program: start,
+        delete_database: delete,
+    }
 }

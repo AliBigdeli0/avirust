@@ -1,7 +1,6 @@
 use crate::utils::forms_helper::{self, ModalResult};
 use egui::{Grid, Window};
 
-
 pub trait BaseForms {
     fn show_controls(&mut self, _ctx: &egui::Context, _frame: &mut eframe::Frame);
     fn menu_name(&mut self) -> Box<&str>;
@@ -49,9 +48,7 @@ impl BaseForms for HomeForm {
                     }
                     grid_ui.end_row();
 
-                    if grid_ui.button(" logger message ").clicked() {
-
-                    }
+                    if grid_ui.button(" logger message ").clicked() {}
                     let _ = grid_ui.button("here six");
                     grid_ui.end_row();
                 });

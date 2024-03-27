@@ -2,7 +2,7 @@ use std::env::current_dir;
 use std::fs::{self, DirEntry, ReadDir};
 use std::path::PathBuf;
 
-pub const EXCEL_FILE_EXTENSION: &str = "xls"; 
+pub const EXCEL_FILE_EXTENSION: &str = "xls";
 pub const YAML_FILE_EXTENSION: &str = "yaml";
 
 pub fn current_path() -> PathBuf {
@@ -25,16 +25,16 @@ pub fn log4rs_yaml_path() -> PathBuf {
     config_path().join("log4rs.yaml")
 }
 
-pub fn server_yaml_path()-> PathBuf {
+pub fn server_yaml_path() -> PathBuf {
     config_path().join("server.yaml")
 }
 
-pub fn db_yaml_path()-> PathBuf {
+pub fn db_yaml_path() -> PathBuf {
     config_path().join("db.yaml")
 }
 
 pub fn generate_yaml_extention(file_name: String) -> String {
-    format!("{}.{}",file_name.as_str(), YAML_FILE_EXTENSION)
+    format!("{}.{}", file_name.as_str(), YAML_FILE_EXTENSION)
 }
 
 pub fn log_file_path() -> PathBuf {
@@ -61,38 +61,39 @@ pub fn file_exist(file_path: PathBuf) -> bool {
 #[derive(Debug)]
 pub enum AllFilesInDirectoryError {
     IOError(std::io::Error),
-    STDError(String)
+    STDError(String),
 }
 
-pub fn all_files_in_directory<'a>(directory_path: &PathBuf, extention: Option<&str>) -> Result<Vec<PathBuf>,std::io::Error> {
+pub fn all_files_in_directory<'a>(
+    directory_path: &PathBuf,
+    extention: Option<&str>,
+) -> Result<Vec<PathBuf>, std::io::Error> {
     let mut list_files: Vec<PathBuf> = vec![];
     let meta_data = fs::metadata(directory_path);
     if !meta_data.is_ok() {
         return Err(meta_data.err().unwrap());
-    }    
+    }
 
     let fs_data = meta_data.ok().unwrap();
-    if !fs_data.is_dir()  {
+    if !fs_data.is_dir() {
         return Ok(list_files);
     }
 
-    let entries:ReadDir = fs::read_dir(directory_path).unwrap();
+    let entries: ReadDir = fs::read_dir(directory_path).unwrap();
 
     for entry in entries {
-        let entry:DirEntry = entry.unwrap(); 
+        let entry: DirEntry = entry.unwrap();
         let file_path: PathBuf = entry.path();
 
         if file_path.is_file() {
             match extention {
-                Some(value)=> {
+                Some(value) => {
                     let file_ext = file_path.extension().unwrap().to_str().unwrap();
-                    if  file_ext.to_lowercase() == value.to_lowercase(){
+                    if file_ext.to_lowercase() == value.to_lowercase() {
                         list_files.push(file_path.clone())
                     }
-                },
-                None  => {
-                    list_files.push(file_path.clone())
                 }
+                None => list_files.push(file_path.clone()),
             }
         }
     }
@@ -120,7 +121,9 @@ mod integration_test {
         setup();
         match create_dir_if_not_exist("config") {
             Ok(()) => {}
-            Err(err) => { panic!("{}", err); }
+            Err(err) => {
+                panic!("{}", err);
+            }
         }
     }
 }

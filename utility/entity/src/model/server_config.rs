@@ -16,7 +16,7 @@ impl Default for ServerInfo {
     fn default() -> Self {
         Self {
             listen: String::from("0.0.0.0"),
-            port: 9001
+            port: 9001,
         }
     }
 }
@@ -24,7 +24,7 @@ impl Default for ServerInfo {
 impl Default for ServerConfig {
     fn default() -> Self {
         Self {
-            server: Default::default()
+            server: Default::default(),
         }
     }
 }

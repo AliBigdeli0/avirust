@@ -69,9 +69,16 @@ impl ExcelInfo {
         self.date = date;
     }
 
-    pub fn set_time(&mut self , time: DateTime<Utc>) {
+    pub fn set_time(&mut self, time: DateTime<Utc>) {
         let date = self.date;
-        self.date = time_helper::create_datetime_utc(date.year(), date.month(), date.day(), time.hour(), time.minute(), time.second()); 
+        self.date = time_helper::create_datetime_utc(
+            date.year(),
+            date.month(),
+            date.day(),
+            time.hour(),
+            time.minute(),
+            time.second(),
+        );
     }
 
     pub fn set_value(&mut self, index: usize, value: String) {
@@ -101,9 +108,10 @@ impl ExcelInfo {
     }
 
     pub fn write_into_file(&mut self) {
-        let excel_file_name = common::file_helper::generate_yaml_extention(
-            format!("{}_{}", self.well_name, self.well_id)
-        );
+        let excel_file_name = common::file_helper::generate_yaml_extention(format!(
+            "{}_{}",
+            self.well_name, self.well_id
+        ));
         let excel_file_path_buff = PathBuf::from(&excel_file_name);
         let excel_full_path = common::file_helper::import_path().join(excel_file_path_buff);
         write_in_file_if_not_exist(excel_full_path, &self).unwrap();
@@ -155,7 +163,7 @@ mod test_excel_dto {
         mock_excel_info.append_value(
             "ali".to_string(),
             "mehran".to_string(),
-            Some("value".to_string())
+            Some("value".to_string()),
         );
 
         mock_excel_info.append("amir".to_string(), "hani".to_string());
@@ -164,12 +172,15 @@ mod test_excel_dto {
 
         let hash = mock_excel_info.to_hash();
         assert_eq!(hash.len(), mock_excel_info.list_items.len());
-        assert_eq!(hash.get("mehran").unwrap(), &mock_excel_info.list_items.get(0).unwrap().value);
+        assert_eq!(
+            hash.get("mehran").unwrap(),
+            &mock_excel_info.list_items.get(0).unwrap().value
+        );
 
         mock_excel_info.append_value(
             "ignored_value".to_string(),
             IGNORE_CODE.to_string(),
-            Some("new_value".to_string())
+            Some("new_value".to_string()),
         );
 
         let ignored_hash = mock_excel_info.to_hash();
@@ -179,10 +190,10 @@ mod test_excel_dto {
     }
 
     #[test]
-    fn  test_excel_date_time() {
-        let mut mock_excel = ExcelInfo::new(); 
+    fn test_excel_date_time() {
+        let mut mock_excel = ExcelInfo::new();
 
-        mock_excel.set_date(time_helper::create_datetime_utc(2023, 12, 10, 1, 2, 3));   
+        mock_excel.set_date(time_helper::create_datetime_utc(2023, 12, 10, 1, 2, 3));
         assert_eq!(mock_excel.date.year(), 2023);
         assert_eq!(mock_excel.date.month(), 12);
         assert_eq!(mock_excel.date.day(), 10);
@@ -190,7 +201,7 @@ mod test_excel_dto {
         assert_eq!(mock_excel.date.minute(), 2);
         assert_eq!(mock_excel.date.second(), 3);
 
-        mock_excel.set_time(time_helper::create_datetime_utc(2022, 11, 9, 23, 20, 30));   
+        mock_excel.set_time(time_helper::create_datetime_utc(2022, 11, 9, 23, 20, 30));
         assert_eq!(mock_excel.date.year(), 2023);
         assert_eq!(mock_excel.date.month(), 12);
         assert_eq!(mock_excel.date.day(), 10);

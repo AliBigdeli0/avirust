@@ -1,4 +1,3 @@
-
 use entity::{dto::excel_dto::ExcelInfo, model::db::*, serializer_helper::serialize_bson};
 use mongodb::{bson::doc, error::Error, options::ClientOptions, Client, Cursor, Database};
 
@@ -67,7 +66,9 @@ pub async fn insert_time_from_excel(
     let hash = &excel_data.to_hash();
 
     if hash.len() == 0 {
-        return Err(Error::custom("the hash len is 0, it can not converted to a valid data"));
+        return Err(Error::custom(
+            "the hash len is 0, it can not converted to a valid data",
+        ));
     }
     let time_data = &TimeData::new_hash(excel_data.date, hash);
 
@@ -86,7 +87,6 @@ pub async fn remove_time_from_excel(
     database: &Database,
     excel_data: ExcelInfo,
 ) -> Result<(), Error> {
-
     let time_data = &TimeData::new(excel_data.date, "not_important".to_string());
 
     let column_name = TimeData::generate_collection_name(excel_data.get_well_id(), excel_data.date);

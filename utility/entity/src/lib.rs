@@ -1,15 +1,13 @@
 extern crate common;
 
-pub fn get_version() -> &'static str{
+pub fn get_version() -> &'static str {
     "1.0.0"
 }
 
-pub mod serializer_helper;
 pub mod dto;
-pub mod model;
 pub mod errors;
-
-
+pub mod model;
+pub mod serializer_helper;
 
 #[cfg(test)]
 mod tests {

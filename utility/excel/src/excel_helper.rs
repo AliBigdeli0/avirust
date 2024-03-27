@@ -14,21 +14,17 @@ pub fn check_excel_info_with_others(
     excel_path: Box<&str>,
     excel_obj: &mut ExcelInfo,
 ) -> Result<(), ExcelError> {
-
     let excel_path_string = excel_path.to_owned().to_string();
-    
+
     navigate_rows(excel_path, true, move |_, row, _| {
         navigate_columns(row,  |col_index: usize, column, row_total_size| {
 
-            if col_index == DATE_COLUMN_INDEX || 
-               col_index == TIME_COLUMN_INDEX 
-            {
+            if col_index == DATE_COLUMN_INDEX || col_index == TIME_COLUMN_INDEX {
                 return Ok(())
             }
 
             let column_value = match column.as_string() {
-                Some(value) => Box::new(value.trim().to_string()), 
-                None => Box::new("".to_string()),
+                Some(value) => Box::new(value.trim().to_string()), None => Box::new("".to_string()),
             };
 
             let excel_obj_total_size = row_total_size - DATE_COLUMN_INDEX - TIME_COLUMN_INDEX - 1;
@@ -38,7 +34,6 @@ pub fn check_excel_info_with_others(
                 let error_msg = format!("expected '{list_items_len}' but got '{excel_obj_total_size}' in file '{excel_path_string}'");
                 return Err(error_msg.into());
             }
-            
             let column_index = col_index - DATE_COLUMN_INDEX - TIME_COLUMN_INDEX - 1;
             if !column_value.is_empty() {
                 if let Some(excel_item) = excel_obj.list_items.get(column_index) {
@@ -65,7 +60,7 @@ pub fn read_excel_info(
     file_path: Box<&str>,
     excel_obj: &mut ExcelInfo,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    navigate_rows(file_path, true, move |_, row,_| {
+    navigate_rows(file_path, true, move |_, row, _| {
         navigate_columns(row, |index_column, column, _| {
             if index_column == DATE_COLUMN_INDEX || index_column == TIME_COLUMN_INDEX {
                 return Ok(());
@@ -99,8 +94,7 @@ pub fn read_from_excels(
                 return Ok(());
             }
 
-            
-            if index_column == DATE_COLUMN_INDEX || index_column == TIME_COLUMN_INDEX{
+            if index_column == DATE_COLUMN_INDEX || index_column == TIME_COLUMN_INDEX {
                 let date = match fetch_as_date(column.as_datetime()) {
                     Ok(value) => value,
                     Err(e) => {
@@ -109,9 +103,12 @@ pub fn read_from_excels(
                     }
                 };
 
-                
-                if index_column == DATE_COLUMN_INDEX { filled_excel_info.set_date(date) } 
-                if index_column == TIME_COLUMN_INDEX  {filled_excel_info.set_time(date) };
+                if index_column == DATE_COLUMN_INDEX {
+                    filled_excel_info.set_date(date)
+                }
+                if index_column == TIME_COLUMN_INDEX {
+                    filled_excel_info.set_time(date)
+                };
             } else {
                 let excel_info_column_index =
                     index_column - DATE_COLUMN_INDEX - TIME_COLUMN_INDEX - 1;
@@ -120,8 +117,15 @@ pub fn read_from_excels(
                 {
                     let value_result = fetch_as_value(column);
                     if let Ok(value) = value_result {
-                        filled_excel_info.set_value(excel_info_column_index, if value.trim().is_empty() { "0".to_string() } else { value });
-                    } else { 
+                        filled_excel_info.set_value(
+                            excel_info_column_index,
+                            if value.trim().is_empty() {
+                                "0".to_string()
+                            } else {
+                                value
+                            },
+                        );
+                    } else {
                         logger::error(&format!(
                             "error in read data from excel with following information: {}, {} in [{},{}]",
                             base_info.get_well_id(),
@@ -176,15 +180,17 @@ fn fetch_as_date(
 fn navigate_columns<F>(row: &[DataType], mut natigator: F) -> Result<(), Box<dyn std::error::Error>>
 where
     F: FnMut(usize, &DataType, usize) -> Result<(), Box<dyn std::error::Error>>,
-{   
-    let column_total_size = row.iter().filter(|&x| {
-        if let Some(value) =x.as_string() {
-            !value.is_empty()
-        }
-        else {
-            false   
-        }
-    }).count(); 
+{
+    let column_total_size = row
+        .iter()
+        .filter(|&x| {
+            if let Some(value) = x.as_string() {
+                !value.is_empty()
+            } else {
+                false
+            }
+        })
+        .count();
 
     for (index, column) in row.iter().enumerate() {
         natigator(index, column, column_total_size)?;

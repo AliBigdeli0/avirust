@@ -1,4 +1,3 @@
-
 mod app;
 mod forms;
 mod utils;
@@ -9,5 +8,3 @@ pub fn get_version() -> String {
 
 // ----------------------------
 pub use app::AppTemplate;
-
-

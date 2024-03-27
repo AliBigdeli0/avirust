@@ -1,6 +1,6 @@
 extern crate log;
 
-use log::{info, error};
+use log::{error, info};
 
 pub fn get_version() -> String {
     String::from("1.0.0")
@@ -14,11 +14,11 @@ pub fn init() {
 }
 
 pub fn info(msg: &str) {
-    info!("{}",msg);
+    info!("{}", msg);
 }
 
 pub fn error(msg: &str) {
-    error!("{}",msg);
+    error!("{}", msg);
 }
 
 #[cfg(test)]

@@ -7,11 +7,10 @@ pub struct Credential {
 }
 
 impl<'a> Fairing for Credential {
-
     fn info(&self) -> Info {
         Info {
-            name: "creadential", 
-            kind: Kind::Request | Kind::Response
+            name: "creadential",
+            kind: Kind::Request | Kind::Response,
         }
     }
 }

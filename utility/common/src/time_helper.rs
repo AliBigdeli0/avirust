@@ -1,55 +1,61 @@
 use chrono::{
-    DateTime, 
-    Utc, 
-    format::{
-        DelayedFormat, 
-        StrftimeItems,
-    }, 
-    NaiveTime, 
-    NaiveDate,
-    NaiveDateTime, 
-    Local
+    format::{DelayedFormat, StrftimeItems},
+    DateTime, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc,
 };
 
-const BSON_TIME_FORMAT: &str="%Y-%m-%dT%H:%M:%SZ";
-const EXCEL_TIME_FORMAT: &str= "%m/%d/%Y %H:%M:%S";
+const BSON_TIME_FORMAT: &str = "%Y-%m-%dT%H:%M:%SZ";
+const EXCEL_TIME_FORMAT: &str = "%m/%d/%Y %H:%M:%S";
 
 pub fn get_now_utc() -> DateTime<Utc> {
     Utc::now()
 }
 
-pub fn get_bson_time<'a>(dt: DateTime<Utc>) -> DelayedFormat<StrftimeItems<'a>>  {
+pub fn get_bson_time<'a>(dt: DateTime<Utc>) -> DelayedFormat<StrftimeItems<'a>> {
     dt.format(BSON_TIME_FORMAT)
 }
 
-pub fn get_bson_time_str<'a>(dt: DateTime<Utc>) -> String { 
+pub fn get_bson_time_str<'a>(dt: DateTime<Utc>) -> String {
     get_bson_time(dt).to_string()
 }
 
-fn create_datetime(year: i32, month: u32, day: u32, hour: u32, minute: u32, second: u32) -> NaiveDateTime {
+fn create_datetime(
+    year: i32,
+    month: u32,
+    day: u32,
+    hour: u32,
+    minute: u32,
+    second: u32,
+) -> NaiveDateTime {
     let naive_date = NaiveDate::from_ymd_opt(year, month, day).unwrap();
     let naive_time = NaiveTime::from_hms_opt(hour, minute, second).unwrap();
 
     NaiveDateTime::new(naive_date, naive_time)
 }
 
-pub fn create_datetime_utc(year: i32, month: u32, day: u32, hour: u32, minute: u32, second: u32) -> DateTime<Utc> {
+pub fn create_datetime_utc(
+    year: i32,
+    month: u32,
+    day: u32,
+    hour: u32,
+    minute: u32,
+    second: u32,
+) -> DateTime<Utc> {
     DateTime::from_naive_utc_and_offset(
-        create_datetime(year, month, day, hour, minute, second), 
-        Utc
+        create_datetime(year, month, day, hour, minute, second),
+        Utc,
     )
 }
 
-pub fn convert_string_to_local(str_date: impl AsRef<str>) -> Result<DateTime<Local>, String>{
+pub fn convert_string_to_local(str_date: impl AsRef<str>) -> Result<DateTime<Local>, String> {
     let parser_date_result = NaiveDateTime::parse_from_str(str_date.as_ref(), EXCEL_TIME_FORMAT);
 
     if let Ok(parsed_date) = parser_date_result {
         if let Some(local_date_result) = parsed_date.and_local_timezone(Local).single() {
             Ok(local_date_result)
-        }else {
+        } else {
             Err(String::from("error in date time conversion"))
         }
-    } else { 
+    } else {
         Err(String::from("Error in convert nativeDateTime to str"))
     }
 }
@@ -58,11 +64,13 @@ pub fn convert_local_to_utc(datetime: DateTime<Local>) -> DateTime<Utc> {
     datetime.with_timezone(&Utc)
 }
 
-pub fn convert_naive_to_local(naive_opt: Option<NaiveDateTime>) -> Result<DateTime<Local>, Box<dyn std::error::Error>> {
+pub fn convert_naive_to_local(
+    naive_opt: Option<NaiveDateTime>,
+) -> Result<DateTime<Local>, Box<dyn std::error::Error>> {
     if let Some(naive_date_time) = naive_opt {
         match naive_date_time.and_local_timezone(Local).single() {
-           Some(s) => Ok(s),
-           None => Err("can not convert to local datetime".into()) 
+            Some(s) => Ok(s),
+            None => Err("can not convert to local datetime".into()),
         }
     } else {
         Err("naive data is empty".into())
@@ -71,13 +79,13 @@ pub fn convert_naive_to_local(naive_opt: Option<NaiveDateTime>) -> Result<DateTi
 
 #[cfg(test)]
 mod test_time_helper {
-    use chrono::{Timelike, Datelike};
+    use chrono::{Datelike, Timelike};
 
     use super::*;
 
     #[test]
-    pub fn get_utc_time() { 
-        let _ = get_now_utc(); 
+    pub fn get_utc_time() {
+        let _ = get_now_utc();
         assert!(true);
     }
 
@@ -92,23 +100,21 @@ mod test_time_helper {
     #[test]
     pub fn test_convert_string_to_time() {
         let date = match convert_string_to_local("06/04/2023 06:00:00") {
-            Ok(value) => value, 
-            Err(err) => panic!("{:?}",err),
+            Ok(value) => value,
+            Err(err) => panic!("{:?}", err),
         };
         assert_eq!(date.naive_local().day(), 4);
-        assert_eq!(date.date_naive().month(),6);
+        assert_eq!(date.date_naive().month(), 6);
         assert_eq!(date.time().hour(), 6);
-        
+
         let date2 = convert_string_to_local("12/23/2023 18:00:00").unwrap();
         assert_eq!(date2.naive_local().day(), 23);
-        assert_eq!(date2.date_naive().month(),12);
+        assert_eq!(date2.date_naive().month(), 12);
         assert_eq!(date2.time().hour(), 18);
-
 
         match convert_string_to_local("20/23/2023 18:00:00") {
             Ok(_) => panic!("shoudl not set to this message"),
-            Err(_) => assert!(true)
+            Err(_) => assert!(true),
         }
-
     }
 }

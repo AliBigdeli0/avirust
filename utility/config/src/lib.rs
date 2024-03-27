@@ -2,13 +2,10 @@ const CONFIG_FILE_CONTENT: &str = include_str!("../resources/log4rs.yml");
 
 extern crate entity;
 
-use std::{
-    fs::File,
-    io::Write,
-};
-use entity::model::server_config::ServerConfig;
 use entity::model::db_config::DBConfig;
+use entity::model::server_config::ServerConfig;
 use entity::serializer_helper::read_from_file;
+use std::{fs::File, io::Write};
 
 pub fn get_version() -> &'static str {
     "1.0.0"
@@ -25,17 +22,18 @@ pub fn init_config_yaml() {
 }
 
 pub fn create_server_config_if_not_exist() {
-    
     let server_config_path = common::file_helper::server_yaml_path();
     let object_to_serliaze: ServerConfig = Default::default();
 
-    entity::serializer_helper::write_in_file_if_not_exist(server_config_path, &object_to_serliaze).unwrap();
+    entity::serializer_helper::write_in_file_if_not_exist(server_config_path, &object_to_serliaze)
+        .unwrap();
 }
 
 pub fn create_db_config_if_not_exist() {
     let db_config_path = common::file_helper::db_yaml_path();
     let db_to_serialize: DBConfig = Default::default();
-    entity::serializer_helper::write_in_file_if_not_exist(db_config_path, &db_to_serialize).unwrap();
+    entity::serializer_helper::write_in_file_if_not_exist(db_config_path, &db_to_serialize)
+        .unwrap();
 }
 
 pub fn read_server_config() -> Result<ServerConfig, std::io::Error> {

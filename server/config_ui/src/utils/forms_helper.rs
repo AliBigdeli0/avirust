@@ -23,49 +23,45 @@ fn show_base(
 ) -> ModalResult {
     let modal = Modal::new(ctx, "show_info_modal");
     let mut result: ModalResult = ModalResult::None;
-    modal.show(|ui| {
-        
+    modal.show(|ui| match prop {
+        ModalProperties::Ok(icon) => {
+            modal.title(ui, title);
+            modal.frame(ui, |ui| {
+                modal.body_and_icon(ui, message, icon);
+            });
 
-        match prop {
-            ModalProperties::Ok(icon) => {
-                modal.title(ui, title);
-                modal.frame(ui, |ui| {
-                    modal.body_and_icon(ui, message, icon);
-                });
-
-                modal.buttons(ui, |ui| {
-                    let ok_button = modal.button(ui, "  ✔Ok  ");
-                    if ok_button.clicked() {
-                        *open = false;
-                        result = ModalResult::Ok;
-                    }
-                });
-            }
-            ModalProperties::YesNo(yes_no_icon) => {
-                modal.title(ui, title);
-                modal.frame(ui, |ui| {
-                    modal.body_and_icon(ui, message, yes_no_icon);
-                });
-
-                modal.buttons(ui, |ui| {
-                    let yes_button = modal.button(ui, "  ✔Yes  ");
-                    if yes_button.clicked() {
-                        *open = false;
-                        result = ModalResult::Yes;
-                    }
-
-                    let no_button = modal.button(ui, "  ✖No  ");
-                    if no_button.clicked() {
-                        *open = false;
-                        result = ModalResult::No;
-                    }
-                });
-            }
-            ModalProperties::Spinner() => modal.frame(ui, |frame_ui| {
-                Spinner::new().ui(frame_ui);
-                frame_ui.add(Label::new(message))
-            }),
+            modal.buttons(ui, |ui| {
+                let ok_button = modal.button(ui, "  ✔Ok  ");
+                if ok_button.clicked() {
+                    *open = false;
+                    result = ModalResult::Ok;
+                }
+            });
         }
+        ModalProperties::YesNo(yes_no_icon) => {
+            modal.title(ui, title);
+            modal.frame(ui, |ui| {
+                modal.body_and_icon(ui, message, yes_no_icon);
+            });
+
+            modal.buttons(ui, |ui| {
+                let yes_button = modal.button(ui, "  ✔Yes  ");
+                if yes_button.clicked() {
+                    *open = false;
+                    result = ModalResult::Yes;
+                }
+
+                let no_button = modal.button(ui, "  ✖No  ");
+                if no_button.clicked() {
+                    *open = false;
+                    result = ModalResult::No;
+                }
+            });
+        }
+        ModalProperties::Spinner() => modal.frame(ui, |frame_ui| {
+            Spinner::new().ui(frame_ui);
+            frame_ui.add(Label::new(message))
+        }),
     });
     if *open {
         modal.open();

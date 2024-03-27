@@ -12,5 +12,3 @@ extern "C" {
     #[wasm_bindgen(js_namespace = console, js_name = log)]
     fn log_many(a: &str, b: &str);
 }
-
-

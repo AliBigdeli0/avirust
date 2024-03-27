@@ -2,7 +2,6 @@ use eframe;
 use eframe::{egui, Frame};
 use egui::Context;
 
-
 pub struct App {
     name: String,
     age: u32,

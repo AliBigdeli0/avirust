@@ -5,7 +5,7 @@ use threadpool::ThreadPool;
 
 pub fn create_cpupool() -> CpuPool {
     let pool = CpuPool::new_num_cpus();
-    
+
     pool
 }
 
@@ -25,12 +25,17 @@ pub fn create_threadpool_jobs<T>(
 }
 
 // ==================================
-pub fn create_async_threadpool_jobs<T> (
+pub fn create_async_threadpool_jobs<T>(
     jobs_num: usize,
     worker_num: usize,
-    channel_capacity: usize, 
-) -> Result<(ThreadPool, (tokio::sync::mpsc::Sender<T>, tokio::sync::mpsc::Receiver<T>)), Box<dyn std::error::Error>> {
-
+    channel_capacity: usize,
+) -> Result<
+    (
+        ThreadPool,
+        (tokio::sync::mpsc::Sender<T>, tokio::sync::mpsc::Receiver<T>),
+    ),
+    Box<dyn std::error::Error>,
+> {
     if jobs_num <= worker_num {
         return Err("too many job, it can cause deadlock".into());
     }
@@ -46,8 +51,8 @@ pub fn create_async_threadpool_jobs<T> (
 #[cfg(test)]
 mod test_thread_helper {
     use std::thread;
-    use tokio::runtime::Handle; 
-    
+    use tokio::runtime::Handle;
+
     use super::*;
 
     const JOBS: usize = 4;
@@ -71,52 +76,43 @@ mod test_thread_helper {
 
     #[tokio::test]
     async fn test_async_thread() {
-
         let threads: Vec<_> = (0..3)
-            .map(|thread_id|{
-                let handle = Handle::current(); 
-                thread::spawn(move || {
-                    handle.spawn(async move {
-                        thread_id
-                    })
-                })
+            .map(|thread_id| {
+                let handle = Handle::current();
+                thread::spawn(move || handle.spawn(async move { thread_id }))
             })
             .collect();
 
         let mut sum_of_ids = 0;
         for t in threads {
-            let id  = t
-            .join()
-            .expect("error in join")
-            .await
-            .unwrap(); 
+            let id = t.join().expect("error in join").await.unwrap();
 
-            sum_of_ids = sum_of_ids + id; 
+            sum_of_ids = sum_of_ids + id;
         }
         assert_eq!(sum_of_ids, 3);
     }
 
     #[tokio::test]
     async fn test_async_thread_pool() {
-        let (pool, (sender,mut rec)) = create_async_threadpool_jobs::<usize>(JOBS, WORKERS, 30).unwrap();
+        let (pool, (sender, mut rec)) =
+            create_async_threadpool_jobs::<usize>(JOBS, WORKERS, 30).unwrap();
 
         for i in 0..JOBS {
             let sender_clone = sender.clone();
-            let handle = Handle::current(); 
+            let handle = Handle::current();
             pool.execute(move || {
                 handle.spawn(async move {
-                        let _ = sender_clone.send(i).await;               
-                });       
-            });     
+                    let _ = sender_clone.send(i).await;
+                });
+            });
         }
 
-        let mut sum = 0 ; 
-        for _ in 0..JOBS{
+        let mut sum = 0;
+        for _ in 0..JOBS {
             let value = rec.recv().await.unwrap();
-            println!("the value is : {}" , sum);
-            sum = sum + value; 
+            println!("the value is : {}", sum);
+            sum = sum + value;
         }
-        assert_eq!(sum,6);
+        assert_eq!(sum, 6);
     }
-
 }

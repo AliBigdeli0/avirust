@@ -1,9 +1,9 @@
 extern crate common;
-extern crate logger; 
-extern crate web; 
 extern crate config;
-extern crate db; 
-extern crate entity; 
+extern crate db;
+extern crate entity;
+extern crate logger;
+extern crate web;
 
 #[tokio::main]
 async fn main() {
@@ -28,15 +28,20 @@ fn print_info() {
     logger::info(&format!("web version is: {}", web::get_version()));
 
     // directory ifo
-    logger::info(&format!("working directory is: {}", common::file_helper::current_path().to_str().unwrap()));
-    logger::info(&format!("configure directory is: {}", common::file_helper::config_path().to_str().unwrap()));
+    logger::info(&format!(
+        "working directory is: {}",
+        common::file_helper::current_path().to_str().unwrap()
+    ));
+    logger::info(&format!(
+        "configure directory is: {}",
+        common::file_helper::config_path().to_str().unwrap()
+    ));
 }
-
 
 #[cfg(test)]
 mod test {
-    use entity::serializer_helper::serialize_json;
     use entity::dto::Point;
+    use entity::serializer_helper::serialize_json;
 
     #[test]
     fn serialize_out_of_scope() {
