@@ -1,7 +1,7 @@
 
 [workspace]
 resolver = "2"
-default-members = ["./server/import_ui"]
+default-members = ["./server/server_db"]
 
 members=[
     "utility/common",
@@ -14,7 +14,8 @@ members=[
     "server/client",
     "server/ui",
     "server/import_ui",
-    "server/config_ui",
+    "server/config_ui", 
+    "server/server_db",
 ]
 
 [profile.win]

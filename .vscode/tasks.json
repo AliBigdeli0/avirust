@@ -38,6 +38,20 @@
       "dependsOn":"linux_per_build",
     }, 
     {
+      "label": "build_server_db",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["build", "-p", "server_db"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "options": {
+        "cwd": "${workspaceFolder}",
+      },
+      "dependsOn":"linux_per_build",
+    }, 
+    {
       "label": "linux_per_build", 
       "type": "shell", 
       "command": "make", 

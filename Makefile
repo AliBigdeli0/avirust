@@ -6,6 +6,10 @@ COMMON_PATH=$(PWD)/common
 
 LINUX_ROOT_DEBUG_PATH=$(PWD)/target/debug
 
+build_server_db: 
+	@cargo build -p server_db 
+	@cd ./target/debug; ./server_db
+
 build_client:: copy_www_files 
 	@cargo build -p client 
 
