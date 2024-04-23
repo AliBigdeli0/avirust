@@ -44,7 +44,10 @@ where
 
     if let Err(_err) = rocket::custom(config)
         .attach(credential)
-        .mount("/api/v1", routes![controller::actions::is_ready])
+        .mount(
+            "/api/v1",
+            routes![controller::actions::is_ready, controller::actions::logout,],
+        )
         .mount(
             "/api/v1/admin",
             routes![

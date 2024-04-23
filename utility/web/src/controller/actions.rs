@@ -7,3 +7,8 @@ pub async fn is_ready() -> Json<IsReady<'static>> {
 
     Json(is_ready)
 }
+
+#[get("/logout")]
+pub fn logout() -> &'static str {
+    "success!!"
+}

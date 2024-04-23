@@ -8,6 +8,8 @@ use rocket::{
     Data, Request, Response,
 };
 
+const AUTHORIZATION_STR: &str = "Authorization";
+
 #[derive(Default)]
 pub struct Credential<T>
 where
@@ -34,7 +36,7 @@ where
     }
 
     fn check_admin_permission<'r>(&self, req: &'r Request<'_>, _res: &mut Response<'r>) -> bool {
-        let tolower_case_check = "Authorization".to_lowercase();
+        let tolower_case_check = String::from(AUTHORIZATION_STR).to_lowercase();
         let auth_header = req.headers().get_one(&tolower_case_check);
         if let Some(parsed_auth_header) = auth_header {
             if parsed_auth_header.starts_with("Basic ") {
@@ -55,6 +57,13 @@ where
         }
 
         false
+    }
+
+    fn remove_authentication_header<'r>(&self, _req: &'r Request<'_>, res: &mut Response<'r>) {
+        res.remove_header(AUTHORIZATION_STR);
+        res.remove_header(&AUTHORIZATION_STR.to_lowercase());
+
+        self.failed_request(res);
     }
 }
 
@@ -77,6 +86,8 @@ where
             if !self.check_admin_permission(req, res) {
                 self.failed_request(res)
             }
+        } else if req.uri().path().contains("logout") {
+            self.remove_authentication_header(req, res)
         }
     }
 }
