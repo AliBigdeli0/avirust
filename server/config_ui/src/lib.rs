@@ -1,3 +1,5 @@
+#![deny(warnings)]
+
 mod app;
 mod forms;
 mod utils;

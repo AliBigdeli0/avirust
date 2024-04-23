@@ -1,3 +1,5 @@
+#![deny(warnings)]
+
 extern crate config;
 extern crate mongodb;
 

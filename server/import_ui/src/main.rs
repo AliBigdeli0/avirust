@@ -1,3 +1,5 @@
+#![deny(warnings)]
+
 use argparse::{ArgumentParser, StoreTrue};
 use import_ui::{start, ParserResult};
 

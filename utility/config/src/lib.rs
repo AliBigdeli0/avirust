@@ -1,3 +1,5 @@
+#![deny(warnings)]
+
 const CONFIG_FILE_CONTENT: &str = include_str!("../resources/log4rs.yml");
 
 extern crate entity;

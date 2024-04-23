@@ -1,3 +1,5 @@
+#![deny(warnings)]
+
 pub fn get_excel_version() -> String {
     String::from("1.0.0")
 }

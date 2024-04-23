@@ -1,3 +1,5 @@
+#![deny(warnings)]
+
 pub fn get_lib_version() -> &'static str {
     "1.0.0"
 }

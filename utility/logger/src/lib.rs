@@ -1,3 +1,5 @@
+#![deny(warnings)]
+
 extern crate log;
 
 use log::{error, info};

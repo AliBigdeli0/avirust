@@ -1,3 +1,5 @@
+#![deny(warnings)]
+
 extern crate common;
 
 pub fn get_version() -> &'static str {
