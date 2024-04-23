@@ -7,3 +7,8 @@ pub async fn is_ready() -> Json<IsReady<'static>> {
     is_ready.message = &"admin is ready";
     Json(is_ready)
 }
+
+#[get("/auth")]
+pub fn auth() -> String {
+    format!("Hello, {}", "ali")
+}

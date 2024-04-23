@@ -1,3 +1,5 @@
+#![deny(warnings)]
+
 extern crate common;
 extern crate config;
 extern crate db;
@@ -13,7 +15,7 @@ async fn main() {
     print_info();
 
     web::init();
-    web::run_wait().await;
+    web::run_wait(entity::model::auth::StaticAuthentication::new()).await;
 }
 
 fn print_info() {
