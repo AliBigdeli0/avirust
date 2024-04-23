@@ -43,7 +43,6 @@ where
                     general_purpose::STANDARD.decode(encoded_credential)
                 {
                     let decode_credential_str = String::from_utf8_lossy(&decode_credential_vec);
-                    println!("the credential is : {}", decode_credential_str);
                     let splited_credential: Vec<&str> = decode_credential_str.split(":").collect();
                     let (username, password) = (splited_credential[0], splited_credential[1]);
                     return self._auth.is_valid_credential(username, password);
