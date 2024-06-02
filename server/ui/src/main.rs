@@ -20,7 +20,7 @@ fn main() -> Result<(), eframe::Error> {
     };
 
     eframe::run_native(
-        "MED UI",
+        "UI",
         options,
         Box::new(|creation_context| {
             let style = Style {

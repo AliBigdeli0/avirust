@@ -6,15 +6,17 @@ COMMON_PATH=$(PWD)/common
 
 LINUX_ROOT_DEBUG_PATH=$(PWD)/target/debug
 
+# ---------------------------------
+# run programs from source code 
 run_win_ui:: 
 	@cargo build -p ui 
-	@cd ./target/debug; ./ui
+	@cd $(LINUX_ROOT_DEBUG_PATH); ./ui
 
 # ---------------------------------
 # build
 build_server_db: 
 	@cargo build -p server_db 
-	@cd ./target/debug; ./server_db
+	@cd $(LINUX_ROOT_DEBUG_PATH); ./server_db
 
 build_client:: copy_www_files 
 	@cargo build -p client 
