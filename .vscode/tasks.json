@@ -38,6 +38,134 @@
       "dependsOn":"linux_per_build",
     }, 
     {
+      "label": "build_ui",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["build", "-p", "ui"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+        }
+      },
+      "dependsOn":"linux_per_build",
+    }, 
+    {
+      "label": "build_import_ui",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["build", "-p", "import_ui"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+        }
+      },
+      "dependsOn":"linux_per_build",
+    }, 
+    {
+      "label": "build_import_ui",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["build", "-p", "import_ui"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+        }
+      },
+      "dependsOn":"linux_per_build",
+    }, 
+    {
+      "label": "build_import_ui",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["build", "-p", "import_ui"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+        }
+      },
+      "dependsOn":"linux_per_build",
+    }, 
+    {
+      "label": "build_import_ui",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["build", "-p", "import_ui"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+        }
+      },
+      "dependsOn":"linux_per_build",
+    }, 
+    {
+      "label": "build_import_ui",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["build", "-p", "import_ui"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+        }
+      },
+      "dependsOn":"linux_per_build",
+    }, 
+    {
+      "label": "build_import_ui",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["build", "-p", "import_ui"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+        }
+      },
+      "dependsOn":"linux_per_build",
+    }, 
+    {
+      "label": "build_import_ui",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["build", "-p", "import_ui"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+        }
+      },
+      "dependsOn":"linux_per_build",
+    }, 
+    {
       "label": "build_server_db",
       "type": "shell",
       "command": "cargo",

@@ -7,3 +7,4 @@ edition = "2021"
 eframe = "0.24.1"
 egui_extras = "0.24.1"
 logger = { version = "0.1.0", path = "../../utility/logger" }
+winit = "0.30.0"
