@@ -11,6 +11,7 @@ base64 = "0.21.5"
 bson = "2.7.0"
 chrono = "0.4.31"
 common = { version = "0.1.0", path = "../common" }
+error-stack = "0.4.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_yaml = "0.9.27"

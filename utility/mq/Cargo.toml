@@ -1,0 +1,13 @@
+[package]
+name = "mq"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+config = { version = "0.1.0", path = "../config" }
+entity = { version = "0.1.0", path = "../entity" }
+error-stack = "0.4.1"
+logger = { version = "0.1.0", path = "../logger" }

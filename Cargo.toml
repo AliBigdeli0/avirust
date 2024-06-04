@@ -9,13 +9,14 @@ members=[
     "utility/config",
     "utility/logger",
     "utility/db",
+    "utility/mq",
     "utility/web",
     "utility/excel",
     "server/client",
     "server/ui",
     "server/import_ui",
     "server/config_ui", 
-    "server/server_db",
+    "server/server_db", "utility/mq",
 ]
 
 [profile.win]
