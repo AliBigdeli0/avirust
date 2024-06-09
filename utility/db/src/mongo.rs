@@ -115,7 +115,7 @@ async fn read_all_from_db<'a, T>(
     collection_name: &'a str,
 ) -> Result<&'a Vec<T>, Error>
 where
-    T: serde::de::DeserializeOwned,
+    T: serde::de::DeserializeOwned + 'a,
 {
     let mut return_documents: Vec<T> = Vec::new();
 

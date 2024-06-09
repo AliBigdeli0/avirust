@@ -28,7 +28,7 @@ impl StreamTrait for NetTcpStream {
                     //     Err(_) => false,
                     // };
                     // output
-                    true
+                    false
                 }
                 Ok(Err(_)) => false,
                 Err(_) => false,
