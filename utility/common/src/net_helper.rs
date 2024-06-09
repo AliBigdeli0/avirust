@@ -20,20 +20,11 @@ impl StreamTrait for NetTcpStream {
             let connection_timeout = Duration::from_secs(self.open_timeout);
             let connect_result = timeout(connection_timeout, TcpStream::connect(addr)).await;
 
-            let res = match connect_result {
-                Ok(Ok(_)) => {
-                    // let stream_result = stream.write_all(b"test_data").await;
-                    // let output = match stream_result {
-                    //     Ok(_) => true,
-                    //     Err(_) => false,
-                    // };
-                    // output
-                    false
-                }
+            match connect_result {
+                Ok(Ok(_)) => true,
                 Ok(Err(_)) => false,
-                Err(_) => false,
-            };
-            res
+                Err(_) => false, // Timeout
+            }
         }
     }
 }
@@ -41,7 +32,7 @@ impl StreamTrait for NetTcpStream {
 
 pub async fn check_port(addr: SocketAddr, op_timeout: Option<u64>) -> bool {
     let inst_network: &NetTcpStream = &NetTcpStream {
-        open_timeout: op_timeout.unwrap_or(1000),
+        open_timeout: op_timeout.unwrap_or(1),
     };
 
     is_tcp_port_open(addr, inst_network).await
@@ -79,9 +70,10 @@ mod test_net_helper {
     #[tokio::test]
     async fn check_failed_connection() {
         let addr: SocketAddr = "172.30.2.241:60090".parse().expect("error in get page");
+        let result = check_port(addr, None).await;
+
         assert_eq!(
-            check_port(addr, None).await,
-            false,
+            result, false,
             "the connection should not get a valid result"
         )
     }
