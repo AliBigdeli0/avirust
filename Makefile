@@ -13,7 +13,7 @@ run_win_ui::
 	@cd $(LINUX_ROOT_DEBUG_PATH); ./ui
 
 # ---------------------------------
-# build test contribution
+# build
 build_server_db: 
 	@cargo build -p server_db 
 	@cd $(LINUX_ROOT_DEBUG_PATH); ./server_db
