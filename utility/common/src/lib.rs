@@ -4,6 +4,7 @@ pub fn get_lib_version() -> &'static str {
     "1.0.0"
 }
 
+pub mod constants;
 pub mod file_helper;
 pub mod hash_helper;
 pub mod net_helper;
