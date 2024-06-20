@@ -7,6 +7,7 @@ mod modals;
 mod uierrors;
 
 use common::constants::UI_APP_NAME;
+use config::create_ui_config_if_not_exist;
 use eframe::egui::{self};
 use eframe::egui::{Style, Visuals};
 use uierrors::UiError;
@@ -17,6 +18,8 @@ pub fn get_ui_version() -> &'static str {
 
 fn main() -> Result<(), UiError> {
     logger::init();
+
+    create_ui_config_if_not_exist().map_err(|e| UiError::UiConfig(e))?;
 
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()

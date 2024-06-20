@@ -4,8 +4,9 @@ const CONFIG_FILE_CONTENT: &str = include_str!("../resources/log4rs.yml");
 
 extern crate entity;
 
-use entity::model::db_config::DBConfig;
 use entity::model::server_config::ServerConfig;
+use entity::model::ui_config::UIConfig;
+use entity::model::{db_config::DBConfig, ui_config::UiConfigError};
 use entity::serializer_helper::read_from_file;
 use std::{fs::File, io::Write};
 
@@ -36,6 +37,20 @@ pub fn create_db_config_if_not_exist() {
     let db_to_serialize: DBConfig = Default::default();
     entity::serializer_helper::write_in_file_if_not_exist(db_config_path, &db_to_serialize)
         .unwrap();
+}
+
+pub fn create_ui_config_if_not_exist() -> Result<(), UiConfigError> {
+    let db_config_path: std::path::PathBuf = common::file_helper::ui_config_yaml_path();
+    let db_to_serialize: UIConfig = Default::default();
+    entity::serializer_helper::write_in_file_if_not_exist(db_config_path, &db_to_serialize)
+        .map_err(|e| UiConfigError::Msg(e.to_string()))
+}
+
+pub fn read_ui_config() -> Result<UIConfig, UiConfigError> {
+    let ui_config_path = common::file_helper::ui_config_yaml_path();
+    let ret_ui_config = read_from_file(ui_config_path);
+
+    Ok(ret_ui_config)
 }
 
 pub fn read_server_config() -> Result<ServerConfig, std::io::Error> {

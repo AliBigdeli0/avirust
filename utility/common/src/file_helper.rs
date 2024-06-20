@@ -33,6 +33,10 @@ pub fn db_yaml_path() -> PathBuf {
     config_path().join("db.yaml")
 }
 
+pub fn ui_config_yaml_path() -> PathBuf {
+    config_path().join("ui_config.yaml")
+}
+
 pub fn generate_yaml_extention(file_name: String) -> String {
     format!("{}.{}", file_name.as_str(), YAML_FILE_EXTENSION)
 }
