@@ -1,5 +1,5 @@
 pub const UI_APP_NAME: &str = "MED Well View";
-
+pub const EMPTY_STR: &str = "";
 #[cfg(test)]
 mod test_constatns {
     use super::*;
