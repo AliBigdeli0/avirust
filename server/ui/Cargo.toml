@@ -9,4 +9,5 @@ eframe = "0.24.1"
 egui_extras = "0.24.1"
 error-stack = "0.4.1"
 logger = { version = "0.1.0", path = "../../utility/logger" }
+thiserror = "1.0.61"
 winit = "0.30.0"
