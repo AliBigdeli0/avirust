@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use eframe;
 use eframe::{egui, Frame};
 use egui::Context;
@@ -8,14 +10,14 @@ use crate::modals::login::LoginModal;
 pub struct App {
     login_modal: LoginModal,
     open_login_at_startup: bool,
-    memory: Box<UICommonMemory>,
+    memory: Rc<UICommonMemory>,
 }
 
 impl Default for App {
     fn default() -> Self {
         logger::info("going to init App");
-        let uiconfig = Box::new(config::read_ui_config().unwrap());
-        let common_memory = Box::new(UICommonMemory::new(uiconfig));
+        let uiconfig = config::read_ui_config().unwrap();
+        let common_memory = Rc::new(UICommonMemory::new(uiconfig));
 
         let ret = Self {
             login_modal: LoginModal::new(common_memory.clone()),
@@ -26,8 +28,8 @@ impl Default for App {
         logger::info(
             format!(
                 "server address is :  {}:{}",
-                ret.memory.config.get_ip().unwrap(),
-                ret.memory.config.get_port().unwrap(),
+                ret.memory.config.borrow().get_ip().unwrap(),
+                ret.memory.config.borrow().get_port().unwrap(),
             )
             .as_str(),
         );
@@ -43,6 +45,8 @@ impl eframe::App for App {
             } else {
                 if ui.button("clicked on me").clicked() {
                     logger::info("button clicked");
+                    let ip = self.memory.config.borrow().get_ip().unwrap();
+                    logger::info(format!("the ip is: {}", ip).as_str());
                 }
             }
         });

@@ -1,5 +1,9 @@
 use serde::{Deserialize, Serialize};
-use std::net::{SocketAddr, ToSocketAddrs};
+use std::{
+    cell::RefCell,
+    net::{SocketAddr, ToSocketAddrs},
+    rc::Rc,
+};
 use thiserror::Error;
 
 //errors
@@ -54,12 +58,19 @@ impl UIConfig {
 //
 #[derive(Clone)]
 pub struct UICommonMemory {
-    pub config: Box<UIConfig>,
+    pub config: Rc<RefCell<UIConfig>>,
 }
 
 impl UICommonMemory {
-    pub fn new(conf: Box<UIConfig>) -> Self {
-        Self { config: conf }
+    pub fn new(conf: UIConfig) -> Self {
+        Self {
+            config: Rc::new(RefCell::new(conf)),
+        }
+    }
+
+    pub fn change_address(&self, addr: String) {
+        let mut config = self.config.borrow_mut();
+        config.change_address(addr);
     }
 }
 

@@ -1,5 +1,7 @@
+use std::rc::Rc;
+
 use common::string_helper::{margin_chars, UIStrMargin};
-use eframe::egui::{self};
+use eframe::egui;
 use entity::model::ui_config::UICommonMemory;
 
 use crate::modals::base::BaseModal;
@@ -9,11 +11,11 @@ pub struct LoginModal {
     password: String,
     apply_str: String,
     password_str: String,
-    memory: Box<UICommonMemory>,
+    memory: Rc<UICommonMemory>,
 }
 
 impl LoginModal {
-    pub fn new(memory: Box<UICommonMemory>) -> Self {
+    pub fn new(memory: Rc<UICommonMemory>) -> Self {
         LoginModal {
             base: BaseModal::new(),
             username: "".to_owned(),
@@ -50,6 +52,8 @@ impl LoginModal {
                         if ui.button(self.apply_str.as_str()).clicked() {
                             println!("Applied username: {}", self.username);
                             println!("Applied password: {}", self.password);
+
+                            self.memory.change_address("10.10.10.103:9004".to_string());
                             *dialog_handler = false
                         }
                     });
