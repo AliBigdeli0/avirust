@@ -7,10 +7,12 @@ impl BaseModal {
         BaseModal {}
     }
 
-    pub fn center_position(&self, ctx: &egui::Context) -> egui::Pos2 {
+    pub fn center_position(&self, ctx: &egui::Context, modal_size: (f32, f32)) -> egui::Pos2 {
         let screen_rect = ctx.screen_rect();
         let center = screen_rect.center();
-        egui::Pos2::new(center.x, center.y)
+        let x = center.x - (modal_size.0 / 2.0);
+        let y = center.y;
+        egui::Pos2::new(x, y)
     }
 
     pub fn grayout_back(&self, ctx: &egui::Context) {
