@@ -22,12 +22,12 @@ impl Default for App {
 impl eframe::App for App {
     fn update(&mut self, ctx: &Context, _frame: &mut Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            if ui.button("clicked on me").clicked() {
-                logger::info("button clicked");
-            }
-
             if self.open_login_at_startup {
                 self.login_modal.update(ui, &mut self.open_login_at_startup);
+            } else {
+                if ui.button("clicked on me").clicked() {
+                    logger::info("button clicked");
+                }
             }
         });
     }
