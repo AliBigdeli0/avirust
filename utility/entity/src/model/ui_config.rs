@@ -10,7 +10,7 @@ pub enum UiConfigError {
 }
 
 //
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct UIConfig {
     server_address: String,
 }
@@ -48,6 +48,18 @@ impl UIConfig {
         } else {
             Err(UiConfigError::Msg("error in get message".to_owned()))
         }
+    }
+}
+
+//
+#[derive(Clone)]
+pub struct UICommonMemory {
+    pub config: Box<UIConfig>,
+}
+
+impl UICommonMemory {
+    pub fn new(conf: Box<UIConfig>) -> Self {
+        Self { config: conf }
     }
 }
 

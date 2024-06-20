@@ -75,6 +75,19 @@ where
     Ok(())
 }
 
+pub fn read_from_file_lifetime<'a, T>(path: PathBuf) -> Result<T, serde_yaml::Error>
+where
+    T: DeserializeOwned,
+{
+    let mut file = File::open(path.clone()).unwrap();
+
+    let mut yaml_string: String = String::from("");
+    file.read_to_string(&mut yaml_string).unwrap();
+
+    let instance: T = deserilize_yaml(&mut yaml_string)?;
+    Ok(instance)
+}
+
 pub fn read_from_file<T>(path: PathBuf) -> T
 where
     T: DeserializeOwned,

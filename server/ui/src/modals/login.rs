@@ -1,5 +1,6 @@
 use common::string_helper::{margin_chars, UIStrMargin};
 use eframe::egui::{self};
+use entity::model::ui_config::UICommonMemory;
 
 use crate::modals::base::BaseModal;
 pub struct LoginModal {
@@ -8,16 +9,18 @@ pub struct LoginModal {
     password: String,
     apply_str: String,
     password_str: String,
+    memory: Box<UICommonMemory>,
 }
 
 impl LoginModal {
-    pub fn new() -> Self {
+    pub fn new(memory: Box<UICommonMemory>) -> Self {
         LoginModal {
             base: BaseModal::new(),
             username: "".to_owned(),
             password: "".to_owned(),
             apply_str: margin_chars("Apply", 10, UIStrMargin::Both),
             password_str: margin_chars("Password:", 1, UIStrMargin::Right),
+            memory,
         }
     }
 

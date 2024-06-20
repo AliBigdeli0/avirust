@@ -1,32 +1,33 @@
 use eframe;
 use eframe::{egui, Frame};
 use egui::Context;
-use entity::model::ui_config::UIConfig;
+use entity::model::ui_config::UICommonMemory;
 
 use crate::modals::login::LoginModal;
 
 pub struct App {
     login_modal: LoginModal,
     open_login_at_startup: bool,
-    config: UIConfig,
+    memory: Box<UICommonMemory>,
 }
 
 impl Default for App {
     fn default() -> Self {
         logger::info("going to init App");
-        let uiconfig = config::read_ui_config().unwrap();
+        let uiconfig = Box::new(config::read_ui_config().unwrap());
+        let common_memory = Box::new(UICommonMemory::new(uiconfig));
 
         let ret = Self {
-            login_modal: LoginModal::new(),
+            login_modal: LoginModal::new(common_memory.clone()),
             open_login_at_startup: true,
-            config: uiconfig,
+            memory: common_memory,
         };
 
         logger::info(
             format!(
                 "server address is :  {}:{}",
-                ret.config.get_ip().unwrap(),
-                ret.config.get_port().unwrap(),
+                ret.memory.config.get_ip().unwrap(),
+                ret.memory.config.get_port().unwrap(),
             )
             .as_str(),
         );

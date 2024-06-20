@@ -1,4 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+// #![deny(warnings)]
 
 extern crate logger;
 
@@ -28,8 +29,8 @@ fn main() -> Result<(), UiError> {
             .with_resizable(true)
             .with_title(UI_APP_NAME)
             .with_inner_size(egui::Vec2 {
-                x: 1200.0,
-                y: 1000.0,
+                x: 1400.0,
+                y: 900.0,
             }),
         centered: true,
         window_builder: Some(Box::new(|wb| {

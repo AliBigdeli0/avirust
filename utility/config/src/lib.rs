@@ -7,7 +7,7 @@ extern crate entity;
 use entity::model::server_config::ServerConfig;
 use entity::model::ui_config::UIConfig;
 use entity::model::{db_config::DBConfig, ui_config::UiConfigError};
-use entity::serializer_helper::read_from_file;
+use entity::serializer_helper::{read_from_file, read_from_file_lifetime};
 use std::{fs::File, io::Write};
 
 pub fn get_version() -> &'static str {
@@ -46,9 +46,10 @@ pub fn create_ui_config_if_not_exist() -> Result<(), UiConfigError> {
         .map_err(|e| UiConfigError::Msg(e.to_string()))
 }
 
-pub fn read_ui_config() -> Result<UIConfig, UiConfigError> {
+pub fn read_ui_config<'a>() -> Result<UIConfig, UiConfigError> {
     let ui_config_path = common::file_helper::ui_config_yaml_path();
-    let ret_ui_config = read_from_file(ui_config_path);
+    let ret_ui_config =
+        read_from_file_lifetime(ui_config_path).map_err(|e| UiConfigError::Msg(e.to_string()))?;
 
     Ok(ret_ui_config)
 }
