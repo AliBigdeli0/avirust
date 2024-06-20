@@ -3,6 +3,7 @@
 extern crate logger;
 
 mod app;
+mod modals;
 mod uierrors;
 
 use common::constants::UI_APP_NAME;
