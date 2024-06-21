@@ -17,12 +17,14 @@ pub enum UiConfigError {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct UIConfig {
     server_address: String,
+    verbose: bool,
 }
 
 impl Default for UIConfig {
     fn default() -> Self {
         Self {
             server_address: "localhost:8066".to_owned(),
+            verbose: false,
         }
     }
 }
@@ -30,6 +32,14 @@ impl Default for UIConfig {
 impl UIConfig {
     pub fn change_address(&mut self, addr: String) {
         self.server_address = addr;
+    }
+
+    pub fn set_verbose(&mut self, verbose: bool) {
+        self.verbose = verbose;
+    }
+
+    pub fn get_verbose(&self) -> bool {
+        self.verbose
     }
 
     pub fn get_ip(&self) -> Result<String, UiConfigError> {
@@ -71,6 +81,24 @@ impl UICommonMemory {
     pub fn change_address(&self, addr: String) {
         let mut config = self.config.borrow_mut();
         config.change_address(addr);
+    }
+
+    pub fn set_verbose(&self, verbose: bool) {
+        let mut config = self.config.borrow_mut();
+        config.set_verbose(verbose);
+    }
+}
+// ------------------------------------------
+pub trait Authenticator {
+    fn is_valid(&self, username: String, password: String) -> bool;
+}
+
+// simple authenticator
+pub struct SimpleAuthenticator;
+
+impl Authenticator for SimpleAuthenticator {
+    fn is_valid(&self, username: String, password: String) -> bool {
+        username.eq("admin") && password.eq("admin")
     }
 }
 

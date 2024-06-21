@@ -5,12 +5,12 @@ use common::{
     string_helper::{margin_chars, UIStrMargin},
 };
 use eframe::egui::{self};
-use entity::model::ui_config::UICommonMemory;
+use entity::model::ui_config::{Authenticator, UICommonMemory};
 
 use crate::modals::base::BaseModal;
 
 use super::msg::MsgBox;
-pub struct LoginModal {
+pub struct LoginModal<T: Authenticator> {
     pub base: BaseModal,
     username: String,
     password: String,
@@ -18,10 +18,11 @@ pub struct LoginModal {
     password_str: String,
     error_message: String,
     memory: Rc<UICommonMemory>,
+    authenticator: Box<T>,
 }
 
-impl LoginModal {
-    pub fn new(memory: Rc<UICommonMemory>) -> Self {
+impl<T: Authenticator> LoginModal<T> {
+    pub fn new(memory: Rc<UICommonMemory>, auth: Box<T>) -> Self {
         LoginModal {
             base: BaseModal::new(),
             username: "".to_owned(),
@@ -30,16 +31,23 @@ impl LoginModal {
             password_str: margin_chars("Password:", 1, UIStrMargin::Right),
             error_message: EMPTY_STR.to_string(),
             memory,
+            authenticator: auth,
         }
     }
 
     pub fn apply(&mut self, dialog_handler: &mut bool) {
-        println!("Applied username: {}", self.username);
-        println!("Applied password: {}", self.password);
-
         self.memory.change_address("10.10.10.103:9004".to_string());
-        self.error_message = "error in authentication".to_owned();
-        *dialog_handler = true
+        self.memory.set_verbose(true);
+
+        if self
+            .authenticator
+            .as_ref()
+            .is_valid(self.username.clone(), self.password.clone())
+        {
+            *dialog_handler = false
+        } else {
+            self.error_message = "error in authentication".to_owned();
+        }
     }
 
     pub fn update(&mut self, ui: &mut egui::Ui, dialog_handler: &mut bool) {
