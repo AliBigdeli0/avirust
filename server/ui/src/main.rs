@@ -3,25 +3,21 @@
 
 extern crate logger;
 
-mod app;
-mod modals;
+mod eguiui;
 mod uierrors;
 
 use common::constants::UI_APP_NAME;
 use config::create_ui_config_if_not_exist;
 use eframe::egui::{self};
 use eframe::egui::{Style, Visuals};
+use eguiui::app;
 use uierrors::UiError;
 
 pub fn get_ui_version() -> &'static str {
     "1.0.0"
 }
 
-fn main() -> Result<(), UiError> {
-    logger::init();
-
-    create_ui_config_if_not_exist().map_err(|e| UiError::UiConfig(e))?;
-
+pub fn run_egui_ui() -> Result<(), UiError> {
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_fullsize_content_view(true)
@@ -55,6 +51,20 @@ fn main() -> Result<(), UiError> {
             Box::<app::App>::default()
         }),
     )?;
+    Ok(())
+}
+
+fn run_slive_gui() -> Result<(), UiError> {
+    Ok(())
+}
+
+fn main() -> Result<(), UiError> {
+    logger::init();
+
+    create_ui_config_if_not_exist().map_err(|e| UiError::UiConfig(e))?;
+
+    run_slive_gui()?;
+
     Ok(())
 }
 

@@ -5,7 +5,7 @@ use eframe::{egui, Frame};
 use egui::Context;
 use entity::model::ui_config::{SimpleAuthenticator, UICommonMemory};
 
-use crate::modals::login::LoginModal;
+use crate::eguiui::modals::login::LoginModal;
 
 pub struct App {
     login_modal: LoginModal<SimpleAuthenticator>,
