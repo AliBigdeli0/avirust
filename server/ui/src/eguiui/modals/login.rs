@@ -7,7 +7,7 @@ use common::{
 use eframe::egui::{self};
 use entity::model::ui_config::{Authenticator, UICommonMemory};
 
-use crate::modals::base::BaseModal;
+use crate::eguiui::modals::base::BaseModal;
 
 use super::msg::MsgBox;
 pub struct LoginModal<T: Authenticator> {

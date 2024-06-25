@@ -7,6 +7,9 @@ pub enum UiError {
     #[error("error in eframe: {0}")]
     EfError(#[from] EframeError),
 
-    #[error("error in uiconfig: {0}")]
-    UiConfig(#[from] UiConfigError),
+    #[error("error in egui config: {0}")]
+    UiEguiConfig(#[from] UiConfigError),
+
+    #[error("error in slint : {0}")]
+    SlintError(String),
 }

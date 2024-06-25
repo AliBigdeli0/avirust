@@ -11,5 +11,6 @@ egui_extras = "0.24.1"
 entity = { version = "0.1.0", path = "../../utility/entity" }
 error-stack = "0.4.1"
 logger = { version = "0.1.0", path = "../../utility/logger" }
+slint = "1.6.0"
 thiserror = "1.0.61"
 winit = "0.30.0"

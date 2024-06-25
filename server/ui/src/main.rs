@@ -4,66 +4,22 @@
 extern crate logger;
 
 mod eguiui;
+mod slintui;
 mod uierrors;
 
-use common::constants::UI_APP_NAME;
 use config::create_ui_config_if_not_exist;
-use eframe::egui::{self};
-use eframe::egui::{Style, Visuals};
-use eguiui::app;
 use uierrors::UiError;
 
 pub fn get_ui_version() -> &'static str {
     "1.0.0"
 }
 
-pub fn run_egui_ui() -> Result<(), UiError> {
-    let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default()
-            .with_fullsize_content_view(true)
-            .with_close_button(true)
-            .with_resizable(true)
-            .with_title(UI_APP_NAME)
-            .with_inner_size(egui::Vec2 {
-                x: 1400.0,
-                y: 900.0,
-            }),
-        centered: true,
-        window_builder: Some(Box::new(|wb| {
-            wb.with_fullsize_content_view(true)
-                .with_maximized(true)
-                .with_maximize_button(false)
-                .with_minimize_button(false)
-        })),
-        event_loop_builder: Some(Box::new(|_eb| {})),
-        ..Default::default()
-    };
-
-    eframe::run_native(
-        "",
-        options,
-        Box::new(|creation_context| {
-            let style = Style {
-                visuals: Visuals::dark(),
-                ..Style::default()
-            };
-            creation_context.egui_ctx.set_style(style);
-            Box::<app::App>::default()
-        }),
-    )?;
-    Ok(())
-}
-
-fn run_slive_gui() -> Result<(), UiError> {
-    Ok(())
-}
-
 fn main() -> Result<(), UiError> {
     logger::init();
 
-    create_ui_config_if_not_exist().map_err(|e| UiError::UiConfig(e))?;
+    create_ui_config_if_not_exist().map_err(|e| UiError::UiEguiConfig(e))?;
 
-    run_slive_gui()?;
+    slintui::run_slive_gui()?;
 
     Ok(())
 }
