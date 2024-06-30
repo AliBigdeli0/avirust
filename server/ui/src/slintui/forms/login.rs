@@ -4,16 +4,20 @@ slint::slint! {
     import { Button } from "std-widgets.slint";
 
     export  component LoginWindow inherits Window {
-        width: 400px;
-        height: 300px;
+        width: 250px;
+        height: 180px;
         title: "Login";
 
         property<string> username : "Username";
         property<string> password : "Password";
+        property <length> control_height: 20px;
+        property <color> border_color : root.background.darker(20%);
+        callback close_login();
 
         VerticalLayout {
             spacing: 20px;
             padding: 20px;
+            height: root.height;
 
             Text {
                 text: "Login";
@@ -24,16 +28,40 @@ slint::slint! {
             VerticalLayout {
                 spacing: 10px;
 
-                TextInput {
-                    text: username;
+                Rectangle {
+                    border-color: border_color;
+                    border-width: 2px;
+                    height: control_height;
+                    TextInput {
+                        text: "username";
+                    }
                 }
 
-                TextInput {
-                    text: password;
+                Rectangle {
+                    border-color: border_color;
+                    border-width: 2px;
+                    height: control_height;
+                    TextInput {
+                        text: "password";
+                        input-type: InputType.password;
+                        font-size: 10px;
+                    }
                 }
 
-                Button {
-                    text: "Login";
+                HorizontalLayout {
+                    spacing: 5px;
+                    Button {
+                        height: control_height + 10px;
+                        text: "Login";
+                    }
+
+                    Button {
+                        height: control_height + 10px;
+                        text: "Cancel";
+                        clicked => {
+                            root.close_login();
+                        }
+                    }
                 }
             }
         }
@@ -41,11 +69,11 @@ slint::slint! {
 }
 
 pub fn run_login_window() -> Result<(), UiError> {
-    let main_window = LoginWindow::new().map_err(|e| UiError::SlintError(e.to_string()))?;
-
-    main_window
+    let login_window = LoginWindow::new().map_err(|e| UiError::SlintError(e.to_string()))?;
+    login_window
         .run()
         .map_err(|e| UiError::SlintError(e.to_string()))?;
 
+    login_window.on_close_login(move || todo!("implement to loging window"));
     Ok(())
 }
