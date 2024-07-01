@@ -66,15 +66,45 @@ impl UIConfig {
 }
 
 //
-#[derive(Clone)]
-pub struct UICommonMemory {
-    pub config: Rc<RefCell<UIConfig>>,
+pub trait UIWindowManager {
+    fn run_win(&self);
+    fn hide_win(&self);
 }
 
-impl UICommonMemory {
-    pub fn new(conf: UIConfig) -> Self {
+#[derive(Default)]
+pub struct UIDefaultWindow;
+
+impl UIWindowManager for UIDefaultWindow {
+    fn run_win(&self) {
+        // empty
+    }
+
+    fn hide_win(&self) {
+        // empty
+    }
+}
+//
+#[derive(Clone)]
+pub struct UICommonMemory<W1, W2>
+where
+    W1: UIWindowManager,
+    W2: UIWindowManager,
+{
+    pub config: Rc<RefCell<UIConfig>>,
+    pub login_win: Rc<RefCell<W1>>,
+    pub main_win: Rc<RefCell<W2>>,
+}
+
+impl<W1, W2> UICommonMemory<W1, W2>
+where
+    W1: UIWindowManager,
+    W2: UIWindowManager,
+{
+    pub fn new(conf: UIConfig, login: W1, main: W2) -> Self {
         Self {
             config: Rc::new(RefCell::new(conf)),
+            login_win: Rc::new(RefCell::new(login)),
+            main_win: Rc::new(RefCell::new(main)),
         }
     }
 
@@ -86,6 +116,21 @@ impl UICommonMemory {
     pub fn set_verbose(&self, verbose: bool) {
         let mut config = self.config.borrow_mut();
         config.set_verbose(verbose);
+    }
+
+    pub fn run_login(&self) {
+        let login = self.login_win.borrow_mut();
+        login.run_win()
+    }
+
+    pub fn hide_login(&self) {
+        let login = self.login_win.borrow_mut();
+        login.hide_win();
+    }
+
+    pub fn run_main(&self) {
+        let main = self.main_win.borrow_mut();
+        main.run_win();
     }
 }
 // ------------------------------------------

@@ -1,11 +1,11 @@
-use crate::uierrors::UiError;
+use entity::model::ui_config::UIWindowManager;
 
-use super::main_form::run_main_window;
+use crate::uierrors::{Result, UiError};
 
 slint::slint! {
     import { Button } from "std-widgets.slint";
 
-    export  component LoginWindow inherits Window {
+    export component LoginWindow inherits Window {
         width: 250px;
         height: 180px;
         title: "Login";
@@ -14,8 +14,9 @@ slint::slint! {
         property<string> password : "Password";
         property <length> control_height: 20px;
         property <color> border_color : root.background.darker(20%);
-        callback close_login();
-        callback apply_login();
+
+        callback close_login;
+        callback apply_login;
 
         VerticalLayout {
             spacing: 20px;
@@ -37,6 +38,7 @@ slint::slint! {
                     height: control_height;
                     TextInput {
                         text: "username";
+                        padding: 5px;
                     }
                 }
 
@@ -48,6 +50,7 @@ slint::slint! {
                         text: "password";
                         input-type: InputType.password;
                         font-size: 10px;
+                        padding: 5px;
                     }
                 }
 
@@ -74,14 +77,13 @@ slint::slint! {
     }
 }
 
-pub fn run_login_window() -> Result<(), UiError> {
+pub fn new_login_window() -> Result<LoginWindow> {
     let login_window = LoginWindow::new().map_err(|e| UiError::SlintError(e.to_string()))?;
     let weak_login_window = login_window.as_weak();
-    login_window
-        .run()
-        .map_err(|e| UiError::SlintError(e.to_string()))?;
 
-    login_window.on_close_login(move || todo!("implement to loging window"));
+    login_window.on_close_login(move || {
+        std::process::exit(0);
+    });
     login_window.on_apply_login(move || {
         println!("you clicked on apply");
 
@@ -89,11 +91,32 @@ pub fn run_login_window() -> Result<(), UiError> {
             let wwl = wl.hide().map_err(|e| UiError::SlintError(e.to_string()));
 
             if let Err(_) = wwl {
-                println!("error in hide login window")
+                println!("error in hiding program");
             }
-
-            run_main_window().unwrap()
         }
     });
-    Ok(())
+
+    Ok(login_window)
+}
+
+// --
+pub struct LoginWindowShared {
+    win: LoginWindow,
+}
+
+impl LoginWindowShared {
+    pub fn new() -> Result<LoginWindowShared> {
+        let login_win = new_login_window()?;
+        Ok(Self { win: login_win })
+    }
+}
+
+impl UIWindowManager for LoginWindowShared {
+    fn run_win(&self) {
+        self.win.run().unwrap()
+    }
+
+    fn hide_win(&self) {
+        self.win.hide().unwrap()
+    }
 }

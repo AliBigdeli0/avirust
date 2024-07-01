@@ -1,5 +1,6 @@
 use eframe::Error as EframeError;
 use entity::model::ui_config::UiConfigError;
+
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -13,3 +14,6 @@ pub enum UiError {
     #[error("error in slint : {0}")]
     SlintError(String),
 }
+
+//result
+pub type Result<T> = std::result::Result<T, UiError>;

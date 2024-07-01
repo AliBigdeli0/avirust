@@ -5,7 +5,7 @@ use common::{
     string_helper::{margin_chars, UIStrMargin},
 };
 use eframe::egui::{self};
-use entity::model::ui_config::{Authenticator, UICommonMemory};
+use entity::model::ui_config::{Authenticator, UICommonMemory, UIDefaultWindow};
 
 use crate::eguiui::modals::base::BaseModal;
 
@@ -17,12 +17,12 @@ pub struct LoginModal<T: Authenticator> {
     apply_str: String,
     password_str: String,
     error_message: String,
-    memory: Rc<UICommonMemory>,
+    memory: Rc<UICommonMemory<UIDefaultWindow, UIDefaultWindow>>,
     authenticator: Box<T>,
 }
 
 impl<T: Authenticator> LoginModal<T> {
-    pub fn new(memory: Rc<UICommonMemory>, auth: Box<T>) -> Self {
+    pub fn new(memory: Rc<UICommonMemory<UIDefaultWindow, UIDefaultWindow>>, auth: Box<T>) -> Self {
         LoginModal {
             base: BaseModal::new(),
             username: "".to_owned(),

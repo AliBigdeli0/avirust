@@ -1,3 +1,6 @@
+use entity::model::ui_config::UIWindowManager;
+
+use crate::uierrors::Result;
 use crate::uierrors::UiError;
 
 slint::slint! {
@@ -14,12 +17,30 @@ slint::slint! {
     }
 }
 
-pub fn run_main_window() -> Result<(), UiError> {
+pub fn new_main_window() -> Result<MainWindow> {
     let main_window = MainWindow::new().map_err(|e| UiError::SlintError(e.to_string()))?;
 
-    main_window
-        .run()
-        .map_err(|e| UiError::SlintError(e.to_string()))?;
+    Ok(main_window)
+}
 
-    Ok(())
+// --
+pub struct MainWindowShared {
+    win: MainWindow,
+}
+
+impl MainWindowShared {
+    pub fn new() -> Result<MainWindowShared> {
+        let win = new_main_window()?;
+        Ok(Self { win })
+    }
+}
+
+impl UIWindowManager for MainWindowShared {
+    fn run_win(&self) {
+        self.win.run().unwrap()
+    }
+
+    fn hide_win(&self) {
+        self.win.hide().unwrap()
+    }
 }
