@@ -1,4 +1,4 @@
-use entity::model::ui_config::UIWindowManager;
+use entity::model::ui_config::{UICommonMemoryMessage, UIWindowManager};
 
 use crate::uierrors::{Result, UiError};
 
@@ -119,4 +119,6 @@ impl UIWindowManager for LoginWindowShared {
     fn hide_win(&self) {
         self.win.hide().unwrap()
     }
+
+    fn send_message(&self, _: UICommonMemoryMessage) {}
 }

@@ -69,6 +69,7 @@ impl UIConfig {
 pub trait UIWindowManager {
     fn run_win(&self);
     fn hide_win(&self);
+    fn send_message(&self, msg: UICommonMemoryMessage);
 }
 
 #[derive(Default)]
@@ -82,6 +83,21 @@ impl UIWindowManager for UIDefaultWindow {
     fn hide_win(&self) {
         // empty
     }
+
+    fn send_message(&self, _: UICommonMemoryMessage) {
+        // empty
+    }
+}
+
+//
+
+pub enum UICommonMemoryWindowMessages {
+    CloseLogin = 1,
+    OpenMain = 2,
+}
+
+pub enum UICommonMemoryMessage {
+    Window(UICommonMemoryWindowMessages),
 }
 //
 #[derive(Clone)]
@@ -120,7 +136,7 @@ where
 
     pub fn run_login(&self) {
         let login = self.login_win.borrow_mut();
-        login.run_win()
+        login.run_win();
     }
 
     pub fn hide_login(&self) {

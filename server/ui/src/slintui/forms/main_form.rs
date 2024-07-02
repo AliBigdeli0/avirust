@@ -1,3 +1,5 @@
+use entity::model::ui_config::UICommonMemoryMessage;
+use entity::model::ui_config::UICommonMemoryWindowMessages;
 use entity::model::ui_config::UIWindowManager;
 
 use crate::uierrors::Result;
@@ -42,5 +44,14 @@ impl UIWindowManager for MainWindowShared {
 
     fn hide_win(&self) {
         self.win.hide().unwrap()
+    }
+
+    fn send_message(&self, msg: UICommonMemoryMessage) {
+        match msg {
+            UICommonMemoryMessage::Window(wmsg) => match wmsg {
+                UICommonMemoryWindowMessages::OpenMain => self.run_win(),
+                _ => {}
+            },
+        }
     }
 }
