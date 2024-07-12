@@ -1,6 +1,7 @@
-use entity::model::ui_config::{UICommonMemoryMessage, UIWindowManager};
-
-use crate::uierrors::{Result, UiError};
+use crate::{
+    slintui::{SlintCommonMemory, SlintUIWindowManager},
+    uierrors::{Result, UiError},
+};
 
 slint::slint! {
     import { Button } from "std-widgets.slint";
@@ -77,7 +78,7 @@ slint::slint! {
     }
 }
 
-pub fn new_login_window() -> Result<LoginWindow> {
+pub fn new_login_window(memory: SlintCommonMemory) -> Result<LoginWindow> {
     let login_window = LoginWindow::new().map_err(|e| UiError::SlintError(e.to_string()))?;
     let weak_login_window = login_window.as_weak();
 
@@ -85,10 +86,12 @@ pub fn new_login_window() -> Result<LoginWindow> {
         std::process::exit(0);
     });
     login_window.on_apply_login(move || {
-        println!("you clicked on apply");
+        println!("apply on login has been clicked");
 
         if let Some(wl) = weak_login_window.upgrade() {
             let wwl = wl.hide().map_err(|e| UiError::SlintError(e.to_string()));
+
+            memory.send_message("open_main");
 
             if let Err(_) = wwl {
                 println!("error in hiding program");
@@ -102,23 +105,39 @@ pub fn new_login_window() -> Result<LoginWindow> {
 // --
 pub struct LoginWindowShared {
     win: LoginWindow,
+    _memory: SlintCommonMemory,
 }
 
 impl LoginWindowShared {
-    pub fn new() -> Result<LoginWindowShared> {
-        let login_win = new_login_window()?;
-        Ok(Self { win: login_win })
+    pub fn new(memory: SlintCommonMemory) -> Result<LoginWindowShared> {
+        let login_win = new_login_window(memory.clone())?;
+
+        Ok(Self {
+            win: login_win,
+            _memory: memory,
+        })
     }
 }
 
-impl UIWindowManager for LoginWindowShared {
-    fn run_win(&self) {
-        self.win.run().unwrap()
+impl SlintUIWindowManager for LoginWindowShared {
+    fn run_win(&self) -> Result<()> {
+        self.win
+            .run()
+            .map_err(|e| UiError::SlintError(e.to_string()))?;
+        Ok(())
     }
 
-    fn hide_win(&self) {
-        self.win.hide().unwrap()
+    fn show_win(&self) -> Result<()> {
+        self.win
+            .show()
+            .map_err(|e| UiError::SlintError(e.to_string()))?;
+        Ok(())
     }
 
-    fn send_message(&self, _: UICommonMemoryMessage) {}
+    fn hide_win(&self) -> Result<()> {
+        self.win
+            .hide()
+            .map_err(|e| UiError::SlintError(e.to_string()))?;
+        Ok(())
+    }
 }

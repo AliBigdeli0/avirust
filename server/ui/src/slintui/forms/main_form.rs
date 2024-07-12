@@ -1,7 +1,5 @@
-use entity::model::ui_config::UICommonMemoryMessage;
-use entity::model::ui_config::UICommonMemoryWindowMessages;
-use entity::model::ui_config::UIWindowManager;
-
+use crate::slintui::SlintCommonMemory;
+use crate::slintui::SlintUIWindowManager;
 use crate::uierrors::Result;
 use crate::uierrors::UiError;
 
@@ -19,39 +17,53 @@ slint::slint! {
     }
 }
 
-pub fn new_main_window() -> Result<MainWindow> {
+pub fn new_main_window(memory: SlintCommonMemory) -> Result<MainWindow> {
     let main_window = MainWindow::new().map_err(|e| UiError::SlintError(e.to_string()))?;
 
+    println!(
+        "main port is: {}",
+        memory
+            .get_port()
+            .map_err(|_| UiError::SlintError("error in load port from config".into()))?
+    );
     Ok(main_window)
 }
 
 // --
 pub struct MainWindowShared {
     win: MainWindow,
+    _memory: SlintCommonMemory,
 }
 
 impl MainWindowShared {
-    pub fn new() -> Result<MainWindowShared> {
-        let win = new_main_window()?;
-        Ok(Self { win })
+    pub fn new(memory: SlintCommonMemory) -> Result<MainWindowShared> {
+        let win = new_main_window(memory.clone())?;
+        Ok(Self {
+            win,
+            _memory: memory,
+        })
     }
 }
 
-impl UIWindowManager for MainWindowShared {
-    fn run_win(&self) {
-        self.win.run().unwrap()
+impl SlintUIWindowManager for MainWindowShared {
+    fn run_win(&self) -> Result<()> {
+        self.win
+            .run()
+            .map_err(|e| UiError::SlintError(e.to_string()))?;
+        Ok(())
     }
 
-    fn hide_win(&self) {
-        self.win.hide().unwrap()
+    fn show_win(&self) -> Result<()> {
+        self.win
+            .show()
+            .map_err(|e| UiError::SlintError(e.to_string()))?;
+        Ok(())
     }
 
-    fn send_message(&self, msg: UICommonMemoryMessage) {
-        match msg {
-            UICommonMemoryMessage::Window(wmsg) => match wmsg {
-                UICommonMemoryWindowMessages::OpenMain => self.run_win(),
-                _ => {}
-            },
-        }
+    fn hide_win(&self) -> Result<()> {
+        self.win
+            .hide()
+            .map_err(|e| UiError::SlintError(e.to_string()))?;
+        Ok(())
     }
 }

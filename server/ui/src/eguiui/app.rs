@@ -3,25 +3,21 @@ use std::rc::Rc;
 use eframe;
 use eframe::{egui, Frame};
 use egui::Context;
-use entity::model::ui_config::{SimpleAuthenticator, UICommonMemory, UIDefaultWindow};
+use entity::model::ui_config::{SimpleAuthenticator, UICommonMemory};
 
 use crate::eguiui::modals::login::LoginModal;
 
 pub struct App {
     login_modal: LoginModal<SimpleAuthenticator>,
     open_login_at_startup: bool,
-    memory: Rc<UICommonMemory<UIDefaultWindow, UIDefaultWindow>>,
+    memory: Rc<UICommonMemory>,
 }
 
 impl Default for App {
     fn default() -> Self {
         logger::info("going to init App");
         let uiconfig = config::read_ui_config().unwrap();
-        let common_memory = Rc::new(UICommonMemory::new(
-            uiconfig,
-            UIDefaultWindow::default(),
-            UIDefaultWindow::default(),
-        ));
+        let common_memory = Rc::new(UICommonMemory::new(uiconfig));
         let authenticator = Box::new(SimpleAuthenticator);
         let ret = Self {
             login_modal: LoginModal::new(common_memory.clone(), authenticator),

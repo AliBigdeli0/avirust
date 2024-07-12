@@ -1,8 +1,10 @@
 use serde::{Deserialize, Serialize};
 use std::{
     cell::RefCell,
+    collections::HashMap,
     net::{SocketAddr, ToSocketAddrs},
     rc::Rc,
+    sync::Arc,
 };
 use thiserror::Error;
 
@@ -66,61 +68,23 @@ impl UIConfig {
 }
 
 //
-pub trait UIWindowManager {
-    fn run_win(&self);
-    fn hide_win(&self);
-    fn send_message(&self, msg: UICommonMemoryMessage);
-}
-
-#[derive(Default)]
-pub struct UIDefaultWindow;
-
-impl UIWindowManager for UIDefaultWindow {
-    fn run_win(&self) {
-        // empty
-    }
-
-    fn hide_win(&self) {
-        // empty
-    }
-
-    fn send_message(&self, _: UICommonMemoryMessage) {
-        // empty
-    }
-}
 
 //
 
-pub enum UICommonMemoryWindowMessages {
-    CloseLogin = 1,
-    OpenMain = 2,
-}
+pub type UIMsgAction = Box<dyn Fn(&str) -> ()>;
+pub type UIMemoryMsgList = HashMap<String, UIMsgAction>;
 
-pub enum UICommonMemoryMessage {
-    Window(UICommonMemoryWindowMessages),
-}
-//
 #[derive(Clone)]
-pub struct UICommonMemory<W1, W2>
-where
-    W1: UIWindowManager,
-    W2: UIWindowManager,
-{
+pub struct UICommonMemory {
     pub config: Rc<RefCell<UIConfig>>,
-    pub login_win: Rc<RefCell<W1>>,
-    pub main_win: Rc<RefCell<W2>>,
+    msg_observer: Arc<RefCell<UIMemoryMsgList>>,
 }
 
-impl<W1, W2> UICommonMemory<W1, W2>
-where
-    W1: UIWindowManager,
-    W2: UIWindowManager,
-{
-    pub fn new(conf: UIConfig, login: W1, main: W2) -> Self {
+impl UICommonMemory {
+    pub fn new(conf: UIConfig) -> Self {
         Self {
             config: Rc::new(RefCell::new(conf)),
-            login_win: Rc::new(RefCell::new(login)),
-            main_win: Rc::new(RefCell::new(main)),
+            msg_observer: Arc::new(RefCell::new(UIMemoryMsgList::new())),
         }
     }
 
@@ -134,19 +98,23 @@ where
         config.set_verbose(verbose);
     }
 
-    pub fn run_login(&self) {
-        let login = self.login_win.borrow_mut();
-        login.run_win();
+    pub fn get_port(&self) -> Result<String, UiConfigError> {
+        let config = self.config.borrow();
+        config.get_ip()
     }
 
-    pub fn hide_login(&self) {
-        let login = self.login_win.borrow_mut();
-        login.hide_win();
+    pub fn register_observer(&self, id: String, msg: UIMsgAction) {
+        let mut obs = self.msg_observer.borrow_mut();
+
+        obs.insert(id, msg);
     }
 
-    pub fn run_main(&self) {
-        let main = self.main_win.borrow_mut();
-        main.run_win();
+    pub fn send_message(&self, msg: &str) {
+        let mut obs = self.msg_observer.borrow_mut();
+
+        for ob in obs.iter_mut() {
+            ob.1(msg);
+        }
     }
 }
 // ------------------------------------------
