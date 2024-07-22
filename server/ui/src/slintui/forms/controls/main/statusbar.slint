@@ -1,0 +1,32 @@
+
+
+import { Button } from "std-widgets.slint";
+export component StatusBar inherits Window {
+    in property <color> backcolor;
+    callback logoutcallback;
+
+    HorizontalLayout {
+        padding: 0px;
+        spacing: 0px;
+        alignment: LayoutAlignment.end;
+        width: 100%;
+
+        Rectangle {
+            background: backcolor;
+            width: 100%;
+            height: 30px;
+
+            HorizontalLayout {
+                width: 100%;
+                alignment: LayoutAlignment.end;
+
+                Button {
+                    text: "Logout";
+                    clicked => {
+                        logoutcallback();
+                    }
+                }
+            }
+        }
+    }
+}

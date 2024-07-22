@@ -4,14 +4,28 @@ use crate::uierrors::Result;
 use crate::uierrors::UiError;
 
 slint::slint! {
+    import { Button, HorizontalBox, VerticalBox} from "std-widgets.slint";
+    import { StatusBar } from "src/slintui/forms/controls/main/statusbar.slint";
+
+
     export component MainWindow inherits Window {
-        width: 600px;
+        width: 800px;
         height: 600px;
 
-        VerticalLayout {
-            spacing: 20px;
+        callback logout;
+
+        VerticalBox {
+            padding: 0px;
+
             Text {
                 text: "Main Window";
+            }
+
+            StatusBar {
+                backcolor: root.background.darker(1);
+                logoutcallback => {
+                    root.logout();
+                }
             }
         }
     }
@@ -20,12 +34,8 @@ slint::slint! {
 pub fn new_main_window(memory: SlintCommonMemory) -> Result<MainWindow> {
     let main_window = MainWindow::new().map_err(|e| UiError::SlintError(e.to_string()))?;
 
-    println!(
-        "main port is: {}",
-        memory
-            .get_port()
-            .map_err(|_| UiError::SlintError("error in load port from config".into()))?
-    );
+    main_window.on_logout(move || memory.send_message("logout"));
+
     Ok(main_window)
 }
 

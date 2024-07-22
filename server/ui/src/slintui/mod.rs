@@ -1,4 +1,4 @@
-use std::{rc::Rc, sync::Arc};
+use std::sync::Arc;
 
 use entity::model::ui_config::UICommonMemory;
 use forms::{login::LoginWindowShared, main_form::MainWindowShared};
@@ -21,28 +21,36 @@ pub fn run_slive_gui() -> Result<()> {
 
     let common_memory: SlintCommonMemory = Arc::new(UICommonMemory::new(uiconfig));
 
-    let login_shared = Rc::new(LoginWindowShared::new(common_memory.clone())?);
-    let main_window = MainWindowShared::new(common_memory.clone())?;
-    let login_shared_clone1 = Rc::clone(&login_shared);
-    let login_shared_clone2 = Rc::clone(&login_shared);
+    let login_shared = Arc::new(LoginWindowShared::new(common_memory.clone())?);
+    let main_shared = Arc::new(MainWindowShared::new(common_memory.clone())?);
 
+    let login_memory_login = Arc::clone(&login_shared);
+    let login_memory_main = Arc::clone(&main_shared);
     common_memory.register_observer(
         "login".into(),
-        Box::new(move |msg: &str| {
-            println!("common memory message: '{msg}'");
-
-            match msg {
-                "open_main" => {
-                    login_shared_clone1.hide_win().unwrap();
-                    main_window.show_win().unwrap();
-                }
-                _ => (),
+        Box::new(move |msg: &str| match msg {
+            "open_main" => {
+                login_memory_login.hide_win().unwrap();
+                login_memory_main.show_win().unwrap();
             }
+            _ => (),
         }),
     );
-    common_memory.register_observer("main".into(), Box::new(move |_msg: &str| {}));
 
-    login_shared_clone2.run_win()?;
+    let main_memory_login = Arc::clone(&login_shared);
+    let main_memory_main = Arc::clone(&main_shared);
+    common_memory.register_observer(
+        "main".into(),
+        Box::new(move |msg: &str| match msg {
+            "logout" => {
+                main_memory_main.hide_win().unwrap();
+                main_memory_login.show_win().unwrap();
+            }
+            _ => (),
+        }),
+    );
+
+    Arc::clone(&login_shared).run_win()?;
 
     Ok(())
 }

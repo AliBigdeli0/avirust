@@ -88,14 +88,8 @@ pub fn new_login_window(memory: SlintCommonMemory) -> Result<LoginWindow> {
     login_window.on_apply_login(move || {
         println!("apply on login has been clicked");
 
-        if let Some(wl) = weak_login_window.upgrade() {
-            let wwl = wl.hide().map_err(|e| UiError::SlintError(e.to_string()));
-
+        if let Some(_) = weak_login_window.upgrade() {
             memory.send_message("open_main");
-
-            if let Err(_) = wwl {
-                println!("error in hiding program");
-            }
         }
     });
 
