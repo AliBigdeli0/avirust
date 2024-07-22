@@ -7,7 +7,6 @@ slint::slint! {
     import { Button, HorizontalBox, VerticalBox} from "std-widgets.slint";
     import { StatusBar } from "src/slintui/forms/controls/main/statusbar.slint";
 
-
     export component MainWindow inherits Window {
         width: 800px;
         height: 600px;
