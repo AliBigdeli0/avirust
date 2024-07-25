@@ -3,33 +3,30 @@
 import { Button } from "std-widgets.slint";
 import "../../../resources/fa-solid-900.ttf";
 
-export component StatusBar inherits Window {
+export component StatusBar inherits HorizontalLayout {
     in property <color> backcolor;
     callback logoutcallback;
 
-    default-font-family: "Font Awesome 6 Free";
+    padding: 0px;
+    spacing: 0px;
+    alignment: LayoutAlignment.end;
 
-    HorizontalLayout {
-        padding: 0px;
-        spacing: 0px;
-        alignment: LayoutAlignment.end;
+    Rectangle {
+        background: backcolor;
         width: 100%;
+        height: 100%;
 
-        Rectangle {
-            background: backcolor;
+        HorizontalLayout {
             width: 100%;
-            height: 30px;
-
-            HorizontalLayout {
-                width: 100%;
-                alignment: LayoutAlignment.end;
-                padding-left: 5px;
-                Button {
-                    width: 30px;
-                    text: "\u{f2f5}";
-                    clicked => {
-                        logoutcallback();
-                    }
+            height: root.height - 5px;
+            alignment: LayoutAlignment.end;
+            padding-right: 5px;
+            Button {
+                width: 40px;
+                text: "👤";
+                colorize-icon: false;
+                clicked => {
+                    logoutcallback();
                 }
             }
         }

@@ -13,15 +13,21 @@ slint::slint! {
 
         callback logout;
 
-        VerticalBox {
+        GridLayout {
             padding: 0px;
+            spacing: 0px;
+            width: parent.width;
+            height: parent.height;
 
             Text {
                 text: "Main Window";
+                row: 0;
             }
 
             StatusBar {
+                row:10;
                 backcolor: root.background.darker(1);
+                height: 30px;
                 logoutcallback => {
                     root.logout();
                 }
