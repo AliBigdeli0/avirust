@@ -9,9 +9,16 @@ pub fn get_version() -> String {
 }
 
 pub fn init() {
-    config::init_config_yaml();
+    config::init_config_yaml(None);
 
-    let config_path = common::file_helper::log4rs_yaml_path();
+    let config_path = common::file_helper::log4rs_yaml_path(None);
+    log4rs::init_file(config_path, Default::default()).unwrap();
+}
+
+pub fn init_with_name(file_name: &str) {
+    config::init_config_yaml(Some(file_name));
+
+    let config_path = common::file_helper::log4rs_yaml_path(Some(file_name));
     log4rs::init_file(config_path, Default::default()).unwrap();
 }
 

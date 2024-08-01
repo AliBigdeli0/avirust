@@ -1,6 +1,7 @@
 #![deny(warnings)]
 
 const CONFIG_FILE_CONTENT: &str = include_str!("../resources/log4rs.yml");
+const CONFIG_DEFAULT_NAME: &str = "program.log";
 
 extern crate entity;
 
@@ -14,14 +15,29 @@ pub fn get_version() -> &'static str {
     "1.0.0"
 }
 
-pub fn init_config_yaml() {
-    let config_path = common::file_helper::log4rs_yaml_path();
+pub fn init_config_yaml(file_name: Option<&str>) {
+    let config_path = common::file_helper::log4rs_yaml_path(file_name);
 
     if !common::file_helper::file_exist(config_path.clone()) {
         let mut file = File::create(config_path.clone().to_str().unwrap()).unwrap();
-        file.write(CONFIG_FILE_CONTENT.as_bytes()).unwrap();
-        let _ = file.flush().unwrap();
+
+        match file_name {
+            None => {
+                file.write(CONFIG_FILE_CONTENT.as_bytes()).unwrap();
+                let _ = file.flush().unwrap();
+            }
+            Some(new_file_name) => {
+                let new_file_content = config_change_content(new_file_name);
+                file.write(new_file_content.as_bytes()).unwrap();
+                let _ = file.flush().unwrap();
+            }
+        };
     }
+}
+
+fn config_change_content(file_name: &str) -> String {
+    let content = CONFIG_FILE_CONTENT.to_string();
+    content.replace(CONFIG_DEFAULT_NAME, file_name)
 }
 
 pub fn create_server_config_if_not_exist() {
@@ -80,5 +96,12 @@ mod tests {
     #[test]
     fn config_file_content_test() {
         assert_ne!(CONFIG_FILE_CONTENT, "");
+    }
+
+    #[test]
+    fn config_change_content_test() {
+        let config_content = config_change_content("mehran.logs");
+
+        assert!(config_content.contains("logs/mehran.logs"));
     }
 }

@@ -16,7 +16,8 @@ members=[
     "server/ui",
     "server/import_ui",
     "server/config_ui", 
-    "server/server_db", "utility/mq",
+    "server/server_db", 
+    "utility/mq", 
 ]
 
 [profile.win]

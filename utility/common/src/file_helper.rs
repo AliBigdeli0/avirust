@@ -4,6 +4,7 @@ use std::path::PathBuf;
 
 pub const EXCEL_FILE_EXTENSION: &str = "xls";
 pub const YAML_FILE_EXTENSION: &str = "yaml";
+pub const CONFIG_EXTENSION: &str = ".log";
 
 pub fn current_path() -> PathBuf {
     current_dir().unwrap()
@@ -21,8 +22,15 @@ pub fn import_path() -> PathBuf {
     import_buff
 }
 
-pub fn log4rs_yaml_path() -> PathBuf {
-    config_path().join("log4rs.yaml")
+pub fn log4rs_yaml_path(file_name: Option<&str>) -> PathBuf {
+    match file_name {
+        Some(fname) => config_path().join(format!(
+            "log4rs_{}.{}",
+            fname.replace(CONFIG_EXTENSION, ""),
+            YAML_FILE_EXTENSION
+        )),
+        None => config_path().join("log4rs.yaml"),
+    }
 }
 
 pub fn server_yaml_path() -> PathBuf {
