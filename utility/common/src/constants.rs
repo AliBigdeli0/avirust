@@ -1,4 +1,5 @@
 pub const UI_APP_NAME: &str = "MED Well View";
+pub const SERVER_DB_APP_NAME: &str = "Server Data Receiver";
 pub const EMPTY_STR: &str = "";
 #[cfg(test)]
 mod test_constatns {

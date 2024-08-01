@@ -45,7 +45,10 @@
             "request": "launch",
             "name": "Debug Db Server",
             "program": "${workspaceFolder}/target/debug/server_db",
-            "args": ["-s"],
+            "args": ["-i=239348348",
+                "-d=mongodb://localhost:27017",
+                "-a=http://10.10.10.101:61616"
+            ],
             "cwd": "${workspaceFolder}/target/debug",
             "stopOnEntry": false,
             "preLaunchTask": "build_server_db", 
