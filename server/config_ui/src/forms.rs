@@ -7,8 +7,7 @@ pub trait BaseForms {
 }
 
 // ------------------------------------------
-#[derive(Default, Clone, Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[derive(Default, Clone, Debug, serde::Deserialize, serde::Serialize)]
 pub struct HomeForm {
     open_message: bool,
     open_modal: bool,
@@ -103,8 +102,7 @@ impl BaseForms for HomeForm {
 }
 
 // ------------------------------------------
-#[derive(Default)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[derive(Default, serde::Deserialize, serde::Serialize)]
 pub struct WellMangement {}
 
 impl BaseForms for WellMangement {
