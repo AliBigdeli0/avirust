@@ -6,6 +6,8 @@ COMMON_PATH=$(PWD)/common
 
 LINUX_ROOT_DEBUG_PATH:=$(PWD)/target/debug
 MINGW_TARGET_RELEASE=$(PWD)/target/x86_64-pc-windows-gnu/release
+PROJECT_NAME="client"
+RELEASE_ADDITIONAL_FILES=
 
 # ---------------------------------
 # run programs from source code 
@@ -20,16 +22,18 @@ build_server_db:
 	@cd $(LINUX_ROOT_DEBUG_PATH); ./server_db
 
 deploy_win_server_db: 
-	@cargo build --target=x86_64-pc-windows-gnu -p server_db --release
-	@cd $(MINGW_TARGET_RELEASE); zip ~/Desktop/share/server_db.zip  server_db.exe
+	@make deploy_win_exe PROJECT_NAME=server_db
 
 build_client:: copy_www_files 
 	@cargo build -p client 
 
 deploy_win_client::
 	@make copy_www_files LINUX_ROOT_DEBUG_PATH=$(MINGW_TARGET_RELEASE)
-	@cargo build --target=x86_64-pc-windows-gnu -p client --release
-	@cd $(MINGW_TARGET_RELEASE); zip ~/Desktop/share/client.zip -r  client.exe static/**/*
+	@make deploy_win_exe PROJECT_NAME=client RELEASE_ADDITIONAL_FILES=static/*
+
+deploy_win_exe::
+	@cargo build --target=x86_64-pc-windows-gnu -p $(PROJECT_NAME) --release
+	@cd $(MINGW_TARGET_RELEASE); zip -r ~/Desktop/share/$(PROJECT_NAME).zip  $(PROJECT_NAME).exe $(RELEASE_ADDITIONAL_FILES)
 
 build_win_ui:: copy_opengl_file
 	@cargo build -p ui
