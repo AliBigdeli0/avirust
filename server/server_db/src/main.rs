@@ -1,54 +1,15 @@
 #![deny(warnings)]
 
+mod serverdbargs;
+
 use clap::Parser;
-use common::{constants::SERVER_DB_APP_NAME, file_helper::CONFIG_EXTENSION};
+use common::file_helper::CONFIG_EXTENSION;
+use serverdbargs::ServerDbArgs;
+use std::time::Duration;
+use tokio::time::sleep;
 
 extern crate common;
 extern crate logger;
-
-#[derive(Parser, Debug, Clone)]
-#[command(
-    name = SERVER_DB_APP_NAME,
-    author = "Ali Bigdeli <alibigdeli66@gmail.com>",
-    about = "MED client actions are  handled in this part"
-)]
-struct ServerDbArgs {
-    #[arg(
-        name = "Well ID",
-        short = 'i',
-        long = "wellid",
-        help = "Well id is a number with 10th lenght"
-    )]
-    wellid: String,
-    #[arg(
-        name = "Well Name",
-        short = 'n',
-        long = "wellname",
-        help = "well name is using for loggers, config files, etc."
-    )]
-    wellname: String,
-    #[arg(
-        name = "Mongodb Connection String",
-        short = 'd',
-        long = "connectionstr",
-        help = "MongoDB connection string for both Single and Repicasetmode"
-    )]
-    connectionstring: String,
-    #[arg(
-        name = "ActiveMQ URL",
-        short = 'a',
-        long = "activemq",
-        help = "Client's Active MQ url"
-    )]
-    activemqurl: String,
-    #[arg(
-        name = "MQ Name",
-        short = 'm',
-        long = "mqname",
-        help = "Client's active MQ name"
-    )]
-    activemqname: String,
-}
 
 #[tokio::main]
 async fn main() {
@@ -59,6 +20,24 @@ async fn main() {
 
     logger::info("server started");
     print_pargs_info(args.clone());
+    let work_task = tokio::spawn(async {
+        loop {
+            println!("application is running");
+            sleep(Duration::from_secs(3)).await;
+        }
+    });
+
+    let signals_task = tokio::spawn(async {
+        match tokio::signal::ctrl_c().await {
+            Ok(()) => println!("crtl-c received... now close resources..."),
+            Err(e) => logger::error(&e.to_string()),
+        }
+    });
+
+    tokio::select! {
+        _ = work_task => {},
+        _ = signals_task => {},
+    }
 
     logger::error("DANGER ==> server closed !<==");
 }
