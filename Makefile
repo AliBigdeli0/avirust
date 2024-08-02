@@ -5,6 +5,7 @@ UI_PATH=$(PWD)/ui
 COMMON_PATH=$(PWD)/common
 
 LINUX_ROOT_DEBUG_PATH=$(PWD)/target/debug
+MINGW_TARGET_RELEASE=$(PWD)/target/x86_64-pc-windows-gnu/release
 
 # ---------------------------------
 # run programs from source code 
@@ -17,6 +18,10 @@ run_win_ui::
 build_server_db: 
 	@cargo build -p server_db 
 	@cd $(LINUX_ROOT_DEBUG_PATH); ./server_db
+
+deploy_win_server_db: 
+	@cargo build --target=x86_64-pc-windows-gnu -p server_db --release
+	@cd $(MINGW_TARGET_RELEASE); zip ~/Desktop/share/server_db.zip  server_db.exe
 
 build_client:: copy_www_files 
 	@cargo build -p client 

@@ -16,5 +16,5 @@ linker = "x86_64-w64-mingw32-gcc"
 to build for windows you can run following command (in this example I want to generate server_db projects .exe):
 
 ```shell
-cargo build --target=x86_64-pc-windows-gnu -p server_db
+cargo build --target=x86_64-pc-windows-gnu -p server_db --release
 ```

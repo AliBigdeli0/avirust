@@ -21,6 +21,13 @@ struct ServerDbArgs {
     )]
     wellid: String,
     #[arg(
+        name = "Well Name",
+        short = 'n',
+        long = "wellname",
+        help = "well name is using for loggers, config files, etc."
+    )]
+    wellname: String,
+    #[arg(
         name = "Mongodb Connection String",
         short = 'd',
         long = "connectionstr",
@@ -48,11 +55,12 @@ async fn main() {
     let args = ServerDbArgs::parse();
     common::file_helper::change_working_directory();
 
-    logger::init_with_name(format!("mehran{}", CONFIG_EXTENSION).as_str());
+    logger::init_with_name(format!("{}{}", args.wellname.trim(), CONFIG_EXTENSION).as_str());
 
     logger::info("server started");
     print_pargs_info(args.clone());
-    logger::error("DANGER ==> server exited!<==");
+
+    logger::error("DANGER ==> server closed !<==");
 }
 
 fn print_pargs_info(args: ServerDbArgs) {
