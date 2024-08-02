@@ -22,16 +22,16 @@ build_server_db:
 	@cd $(LINUX_ROOT_DEBUG_PATH); ./server_db
 
 deploy_win_server_db: 
-	@make deploy_win_exe PROJECT_NAME=server_db
+	@make _deploy_win_all PROJECT_NAME=server_db
 
 build_client:: copy_www_files 
 	@cargo build -p client 
 
 deploy_win_client::
 	@make copy_www_files LINUX_ROOT_DEBUG_PATH=$(MINGW_TARGET_RELEASE)
-	@make deploy_win_exe PROJECT_NAME=client RELEASE_ADDITIONAL_FILES=static/*
+	@make _deploy_win_all PROJECT_NAME=client RELEASE_ADDITIONAL_FILES=static/*
 
-deploy_win_exe::
+_deploy_win_all::
 	@cargo build --target=x86_64-pc-windows-gnu -p $(PROJECT_NAME) --release
 	@cd $(MINGW_TARGET_RELEASE); zip -r ~/Desktop/share/$(PROJECT_NAME).zip  $(PROJECT_NAME).exe $(RELEASE_ADDITIONAL_FILES)
 
