@@ -26,7 +26,7 @@ cargo build --target=x86_64-pc-windows-gnu -p server_db --release
 to add argument with space in the clap library :
 
 ```shell
-cargo build -- -n well name
+cargo run -p server_db -- -n well name
 
 # NOTE: this is incorrect
 cargo build -- -n=\"well name\"
