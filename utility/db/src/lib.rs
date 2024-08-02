@@ -3,6 +3,7 @@
 extern crate config;
 extern crate mongodb;
 
+pub mod dberror;
 pub mod mongo;
 
 pub fn get_db_version() -> &'static str {

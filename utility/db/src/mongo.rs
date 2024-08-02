@@ -3,6 +3,8 @@ use mongodb::{bson::doc, error::Error, options::ClientOptions, Client, Cursor, D
 
 use config::create_db_config_if_not_exist;
 
+use crate::dberror;
+
 pub async fn init() -> (Client, Database) {
     create_db_config_if_not_exist();
 
@@ -13,16 +15,45 @@ pub async fn init() -> (Client, Database) {
         .expect("error in db connection check! please check the database!")
 }
 
+pub async fn init_with_connection_string(
+    connection_string: &str,
+) -> dberror::Result<(Client, Database)> {
+    let config = entity::model::db_config::DBConfig::init(connection_string.into());
+
+    check_db_exist(config)
+        .await
+        .map_err(|_| dberror::DbError::TextError("database does not running".into()))
+}
+
 async fn create_db(
     config: entity::model::db_config::DBConfig,
-) -> Result<Box<(Client, Database)>, Error> {
-    let client_options = Box::new(ClientOptions::parse(config.connection_string).await?);
+) -> dberror::Result<Box<(Client, Database)>> {
+    let client_options: Box<ClientOptions> = Box::new(
+        ClientOptions::parse(config.connection_string)
+            .await
+            .map_err(|_| dberror::DbError::TextError("error in parse configuration".into()))?,
+    );
 
-    let timeout = client_options.connect_timeout.unwrap();
-    let server_selection_timeout = client_options.server_selection_timeout.unwrap();
-    let heart_beat = client_options.heartbeat_freq.unwrap();
+    let timeout = client_options
+        .connect_timeout
+        .ok_or(dberror::DbError::TextError(
+            "error in convert timeout".into(),
+        ))?;
+    let server_selection_timeout =
+        client_options
+            .server_selection_timeout
+            .ok_or(dberror::DbError::TextError(
+                "error in convert server selection timeout".into(),
+            ))?;
 
-    let client = Client::with_options(*client_options)?;
+    let heart_beat = client_options
+        .heartbeat_freq
+        .ok_or(dberror::DbError::TextError(
+            "error in convert heartbeat...".into(),
+        ))?;
+
+    let client = Client::with_options(*client_options)
+        .map_err(|_| dberror::DbError::TextError("error in convert client with options".into()))?;
 
     logger::info(&format!(
         "connection timeout: {:?}, server selection timeout: {:?}, heart beat : {:?}",
@@ -36,7 +67,9 @@ async fn create_db(
 pub async fn check_db_exist(
     config: entity::model::db_config::DBConfig,
 ) -> Result<(Client, Database), Error> {
-    let (client, database) = *(create_db(config).await?);
+    let (client, database) = *(create_db(config)
+        .await
+        .map_err(|_| Error::custom("error in get data from create db"))?);
 
     let name = database.name();
     logger::info(&format!("the database name is: {}", name));
@@ -55,8 +88,10 @@ pub async fn check_db_exist(
     Ok((client, database))
 }
 
-pub async fn read_all_wells<'a>(database: Database) -> Result<&'a Vec<Well>, Error> {
-    read_all_from_db::<Well>(database, WELL_COLLECTION_NAME).await
+pub async fn read_all_wells<'a>(database: Database) -> dberror::Result<&'a Vec<Well>> {
+    read_all_from_db::<Well>(database, WELL_COLLECTION_NAME)
+        .await
+        .map_err(|_| dberror::DbError::TextError("error in read all wells".into()))
 }
 
 pub async fn insert_time_from_excel(

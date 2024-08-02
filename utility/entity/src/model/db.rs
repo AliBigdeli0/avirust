@@ -22,7 +22,34 @@ pub fn convert_to_bson_date(d: ChronoDateTime<Utc>) -> BsonDateTime {
         .unwrap()
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
+#[allow(dead_code)]
+pub struct DocumentValue {
+    #[serde(rename = "Document")]
+    pub document: String,
+
+    #[serde(rename = "Value")]
+    pub value: String,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[allow(dead_code)]
+pub struct MQClientConfigure {
+    #[serde(rename = "Uri")]
+    pub uri: DocumentValue,
+
+    #[serde(rename = "MQOfflineName")]
+    pub mq_offline_name: DocumentValue,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[allow(dead_code)]
+pub struct ServerConfigure {
+    #[serde(rename = "MQClientConfigure")]
+    pub mq_client_configure: MQClientConfigure,
+}
+
+#[derive(Debug, Deserialize, Clone)]
 #[allow(dead_code)]
 pub struct Well {
     _id: ObjectId,
@@ -34,6 +61,9 @@ pub struct Well {
     pub ip: String,
     #[serde(rename = "IsActive")]
     pub is_active: bool,
+
+    #[serde(rename = "ServerConfigure")]
+    pub server_configure: ServerConfigure,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

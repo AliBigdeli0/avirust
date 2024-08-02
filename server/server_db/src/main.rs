@@ -1,35 +1,46 @@
 #![deny(warnings)]
 
 mod serverdbargs;
+mod serverdberrors;
 
 use clap::Parser;
 use common::file_helper::CONFIG_EXTENSION;
+
 use serverdbargs::ServerDbArgs;
+use serverdberrors::ServerDbError;
 use std::time::Duration;
 use tokio::time::sleep;
 
 extern crate common;
+extern crate db;
+extern crate entity;
 extern crate logger;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> serverdberrors::Result<()> {
     let args = ServerDbArgs::parse();
     common::file_helper::change_working_directory();
 
-    logger::init_with_name(format!("{}{}", args.wellname.trim(), CONFIG_EXTENSION).as_str());
+    let db_tuple = read_well_fromdb(args.clone()).await?;
+    let well = db_tuple.0;
+    let wellname = well.name.to_string();
 
-    logger::info("server started");
-    print_pargs_info(args.clone());
-    let work_task = tokio::spawn(async {
+    logger::init_with_name(format!("{}{}", wellname, CONFIG_EXTENSION).as_str());
+    logger::info("loging initiated");
+    logger::info("going to start server");
+
+    print_info(args.clone(), well.clone());
+
+    let work_task = tokio::spawn(async move {
         loop {
-            println!("application is running");
             sleep(Duration::from_secs(3)).await;
+            logger::error("==> going to reset the main loop <==")
         }
     });
 
     let signals_task = tokio::spawn(async {
         match tokio::signal::ctrl_c().await {
-            Ok(()) => println!("crtl-c received... now close resources..."),
+            Ok(()) => println!("crtl-c received..."),
             Err(e) => logger::error(&e.to_string()),
         }
     });
@@ -40,12 +51,60 @@ async fn main() {
     }
 
     logger::error("DANGER ==> server closed !<==");
+
+    Ok(())
 }
 
-fn print_pargs_info(args: ServerDbArgs) {
+fn print_info(args: ServerDbArgs, well: entity::model::db::Well) {
     logger::info(format!("Well ID '{}'", args.wellid).as_str());
-    logger::info(format!("Well Name '{}'", args.wellname.trim()).as_str());
-    logger::info(format!("MongoDb Connection '{}'", args.connectionstring).as_str());
-    logger::info(format!("Active MQ URL '{}'", args.activemqurl).as_str());
-    logger::info(format!("MQ name is '{}'", args.activemqname).as_str());
+    logger::info(format!("MongoDb connection '{}'", args.connectionstring).as_str());
+    logger::info(format!("Well name Is : '{}'", well.name).as_str());
+    logger::info(
+        format!(
+            "MQ address '{}'",
+            well.server_configure.mq_client_configure.uri.value
+        )
+        .as_str(),
+    );
+    logger::info(
+        format!(
+            "MQ name is : '{}'",
+            well.server_configure
+                .mq_client_configure
+                .mq_offline_name
+                .value
+        )
+        .as_str(),
+    );
+}
+
+async fn read_well_fromdb<'a>(
+    args: serverdbargs::ServerDbArgs,
+) -> serverdberrors::Result<(
+    &'a entity::model::db::Well,
+    mongodb::Database,
+    mongodb::Client,
+)> {
+    let (client, db) = db::mongo::init_with_connection_string(&args.connectionstring)
+        .await
+        .map_err(|_| {
+            serverdberrors::ServerDbError::TextErr("error in database connection".into())
+        })?;
+
+    let all_wells = db::mongo::read_all_wells(db.clone())
+        .await
+        .map_err(|_| serverdberrors::ServerDbError::TextErr("error in read all wells".into()))?;
+    let well_iter = all_wells.iter().find(|well| well.id == args.wellid);
+
+    if well_iter.is_none() {
+        println!("error in get well from db with id : {}", args.wellid);
+        return Err(ServerDbError::TextErr(
+            "selected well does not exist in well".into(),
+        ));
+    }
+    let well = well_iter.ok_or(serverdberrors::ServerDbError::TextErr(
+        "error in convert to well".into(),
+    ))?;
+
+    Ok((well, db, client))
 }

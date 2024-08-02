@@ -16,31 +16,10 @@ pub struct ServerDbArgs {
     )]
     pub wellid: String,
     #[arg(
-        name = "Well Name",
-        short = 'n',
-        long = "wellname",
-        help = "well name is using for loggers, config files, etc."
-    )]
-    pub wellname: String,
-    #[arg(
         name = "Mongodb Connection String",
         short = 'd',
         long = "connectionstr",
         help = "MongoDB connection string for both Single and Repicasetmode"
     )]
     pub connectionstring: String,
-    #[arg(
-        name = "ActiveMQ URL",
-        short = 'a',
-        long = "activemq",
-        help = "Client's Active MQ url"
-    )]
-    pub activemqurl: String,
-    #[arg(
-        name = "MQ Name",
-        short = 'm',
-        long = "mqname",
-        help = "Client's active MQ name"
-    )]
-    pub activemqname: String,
 }
