@@ -66,29 +66,15 @@ impl BaseForms for HomeForm {
             self.open_modal &= !close;
 
             if self.open_spinner {
-                forms_helper::show_spinner(ctx, "waiting for the data...", &mut self.open_spinner);
+                forms_helper::show_spinner();
             }
 
             if self.open_yes_no_message {
-                let modal_result = forms_helper::show_yes_no(
-                    ctx,
-                    "are you sure",
-                    "title",
-                    &mut self.open_yes_no_message,
-                );
-                if !matches!(modal_result, ModalResult::None) {
-                    if matches!(modal_result, ModalResult::Yes) {
-                        self.open_message = true;
-                    }
-                }
+                let modal_result = forms_helper::show_yes_no();
+                if !matches!(modal_result, ModalResult::None) {}
             }
             if self.open_message {
-                let res = forms_helper::show_info(
-                    ctx,
-                    "The data has been saved",
-                    "info",
-                    &mut self.open_message,
-                );
+                let res = forms_helper::show_info();
                 if !matches!(res, ModalResult::None) {
                     println!("the result is: ")
                 }
