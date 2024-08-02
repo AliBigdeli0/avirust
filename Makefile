@@ -26,6 +26,10 @@ deploy_win_server_db:
 build_client:: copy_www_files 
 	@cargo build -p client 
 
+deploy_win_client: 
+	@cargo build --target=x86_64-pc-windows-gnu -p client --release
+	@cd $(MINGW_TARGET_RELEASE); zip ~/Desktop/share/client.zip  client.exe
+
 build_win_ui:: copy_opengl_file
 	@cargo build -p ui
 
