@@ -4,7 +4,7 @@ CLIENT_PATH=$(PWD)/client
 UI_PATH=$(PWD)/ui
 COMMON_PATH=$(PWD)/common
 
-LINUX_ROOT_DEBUG_PATH=$(PWD)/target/debug
+LINUX_ROOT_DEBUG_PATH:=$(PWD)/target/debug
 MINGW_TARGET_RELEASE=$(PWD)/target/x86_64-pc-windows-gnu/release
 
 # ---------------------------------
@@ -26,9 +26,10 @@ deploy_win_server_db:
 build_client:: copy_www_files 
 	@cargo build -p client 
 
-deploy_win_client: 
+deploy_win_client::
+	@make copy_www_files LINUX_ROOT_DEBUG_PATH=$(MINGW_TARGET_RELEASE)
 	@cargo build --target=x86_64-pc-windows-gnu -p client --release
-	@cd $(MINGW_TARGET_RELEASE); zip ~/Desktop/share/client.zip  client.exe
+	@cd $(MINGW_TARGET_RELEASE); zip ~/Desktop/share/client.zip -r  client.exe static/**/*
 
 build_win_ui:: copy_opengl_file
 	@cargo build -p ui
@@ -46,6 +47,7 @@ copy_opengl_file::
 	@cp -r $(PWD)/offline_files/opengl/opengl32.dll $(LINUX_ROOT_DEBUG_PATH)
 
 copy_www_files::
+	@echo the linux root path is:  $(LINUX_ROOT_DEBUG_PATH)
 	@rm -rf $(LINUX_ROOT_DEBUG_PATH)/static
 	@mkdir -p $(LINUX_ROOT_DEBUG_PATH)/static
 	@cp -r $(PWD)/offline_files/www/* $(LINUX_ROOT_DEBUG_PATH)/static
