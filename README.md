@@ -1,4 +1,6 @@
-# Build Windows .exe File From Linux
+# General
+
+## Build Windows .exe File From Linux
 
 Before anything just pay attension to run :
 
@@ -17,4 +19,15 @@ to build for windows you can run following command (in this example I want to ge
 
 ```shell
 cargo build --target=x86_64-pc-windows-gnu -p server_db --release
+```
+
+## Clap Argument with space
+
+to add argument with space in the clap library :
+
+```shell
+cargo build -- -n well name
+
+# NOTE: this is incorrect
+cargo build -- -n=\"well name\"
 ```

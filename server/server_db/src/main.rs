@@ -65,6 +65,7 @@ async fn main() {
 
 fn print_pargs_info(args: ServerDbArgs) {
     logger::info(format!("Well ID '{}'", args.wellid).as_str());
+    logger::info(format!("Well Name '{}'", args.wellname.trim()).as_str());
     logger::info(format!("MongoDb Connection '{}'", args.connectionstring).as_str());
     logger::info(format!("Active MQ URL '{}'", args.activemqurl).as_str());
     logger::info(format!("MQ name is '{}'", args.activemqname).as_str());
