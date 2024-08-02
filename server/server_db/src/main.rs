@@ -1,24 +1,24 @@
 #![deny(warnings)]
 
-mod serverdbargs;
-mod serverdberrors;
-
-use clap::Parser;
-use common::file_helper::CONFIG_EXTENSION;
-
-use serverdbargs::ServerDbArgs;
-use serverdberrors::ServerDbError;
-use std::time::Duration;
-use tokio::time::sleep;
-
 extern crate common;
 extern crate db;
 extern crate entity;
 extern crate logger;
 
+mod serverdbargs;
+mod serverdberrors;
+
+use clap::Parser;
+use common::file_helper::CONFIG_EXTENSION;
+use serverdbargs::ServerDbArgs;
+use serverdberrors::ServerDbError;
+use std::time::Duration;
+use tokio::time::sleep;
+
 #[tokio::main]
 async fn main() -> serverdberrors::Result<()> {
     let args = ServerDbArgs::parse();
+
     common::file_helper::change_working_directory();
 
     let db_tuple = read_well_fromdb(args.clone()).await?;
@@ -26,7 +26,7 @@ async fn main() -> serverdberrors::Result<()> {
     let wellname = well.name.to_string();
 
     logger::init_with_name(format!("{}{}", wellname, CONFIG_EXTENSION).as_str());
-    logger::info("loging initiated");
+    logger::info("loging is initiated");
     logger::info("going to start server");
 
     print_info(args.clone(), well.clone());
@@ -51,6 +51,8 @@ async fn main() -> serverdberrors::Result<()> {
     }
 
     logger::error("DANGER ==> server closed !<==");
+
+    db_tuple.2.shutdown_immediate().await;
 
     Ok(())
 }
@@ -88,12 +90,15 @@ async fn read_well_fromdb<'a>(
     let (client, db) = db::mongo::init_with_connection_string(&args.connectionstring)
         .await
         .map_err(|_| {
-            serverdberrors::ServerDbError::TextErr("error in database connection".into())
+            serverdberrors::ServerDbError::TextErr(
+                format!("error in database connection").to_string(),
+            )
         })?;
 
     let all_wells = db::mongo::read_all_wells(db.clone())
         .await
         .map_err(|_| serverdberrors::ServerDbError::TextErr("error in read all wells".into()))?;
+
     let well_iter = all_wells.iter().find(|well| well.id == args.wellid);
 
     if well_iter.is_none() {
@@ -102,6 +107,7 @@ async fn read_well_fromdb<'a>(
             "selected well does not exist in well".into(),
         ));
     }
+
     let well = well_iter.ok_or(serverdberrors::ServerDbError::TextErr(
         "error in convert to well".into(),
     ))?;

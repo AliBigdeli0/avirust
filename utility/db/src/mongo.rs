@@ -39,6 +39,7 @@ async fn create_db(
         .ok_or(dberror::DbError::TextError(
             "error in convert timeout".into(),
         ))?;
+
     let server_selection_timeout =
         client_options
             .server_selection_timeout
@@ -61,6 +62,7 @@ async fn create_db(
     ));
 
     let database = client.database(&config.db_name);
+
     Ok(Box::new((client, database)))
 }
 
