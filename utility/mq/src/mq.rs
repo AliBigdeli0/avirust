@@ -47,9 +47,10 @@ impl InternalMQ {
     ) -> mqerror::Result<Receiver<Frame<ServerCommand>>> {
         let (sender, receiver): (Sender<Frame<ServerCommand>>, Receiver<Frame<ServerCommand>>) =
             channel(16);
+        let subs = Subscribe::new_with_random_id(self.get_queue_name());
 
         client
-            .subscribe(Subscribe::new_with_random_id(self.get_queue_name()), sender)
+            .subscribe(subs, sender)
             .await
             .map_err(|e| mqerror::MqError::TextErr(e.to_string()))?;
 
@@ -65,13 +66,9 @@ impl InternalMQ {
             .await
             .ok_or(|_| mqerror::MqError::TextErr("error in open frame".into()))
             .map_err(|e| e("error in open frame"))?;
-        // let ack_msg = opt_frame.ack().unwrap();
-        // println!("ack : {:?}", ack_msg);
 
-        let body_str = opt_frame.body.as_str();
-        if receiver.is_empty() {
-            println!("receiver is empty.")
-        }
+        let body_str = opt_frame.body.as_bytes();
+
         println!("frame with body has received : {:?}", body_str);
 
         Ok(())
