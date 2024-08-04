@@ -44,3 +44,9 @@ Entire execution command :
 ```shell
 server_db.exe -i=2886263122 -d "mongodb://172.30.2.241:27017,172.29.48.77:27017,172.30.2.241:27018,172.30.2.237:27018/?replicaSet=rs0&connectTimeoutMS=5000&heartbeatFrequencyMS=2000&serverSelectionTimeoutMS=5000"
 ```
+
+## Add Cargo to Vendor
+
+```shell
+cargo vendor
+```
