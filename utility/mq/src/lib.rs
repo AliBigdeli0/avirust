@@ -1,10 +1,11 @@
+// #![deny(warnings)]
+
 pub fn get_version() -> &'static str {
     "1.0.0"
 }
 
-pub fn init() {
-    config::create_db_config_if_not_exist();
-}
+pub mod mq;
+pub mod mqerror;
 
 #[cfg(test)]
 mod tests {

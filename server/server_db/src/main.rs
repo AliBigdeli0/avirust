@@ -1,9 +1,10 @@
-#![deny(warnings)]
+// #![deny(warnings)]
 
 extern crate common;
 extern crate db;
 extern crate entity;
 extern crate logger;
+extern crate mq;
 
 mod serverdbargs;
 mod serverdberrors;
@@ -21,26 +22,98 @@ async fn main() -> serverdberrors::Result<()> {
 
     common::file_helper::change_working_directory();
 
+    ///////////////////////////////////
+    // database actions
     let db_tuple = read_well_fromdb(args.clone()).await?;
     let well = db_tuple.0;
+    let database_client = db_tuple.2;
     let wellname = well.name.to_string();
 
     logger::init_with_name(format!("{}{}", wellname, CONFIG_EXTENSION).as_str());
     logger::info("loging is initiated");
     logger::info("going to start server");
 
+    ///////////////////////////////////
+    // print entered data
     print_info(args.clone(), well.clone());
 
+    ///////////////////////////////////
+    // run tasks
     let work_task = tokio::spawn(async move {
         loop {
+            ///////////////////////////////////
+            // mq init
+            let mq_well = well.clone();
+            let mq_instance = mq::mq::init_session(
+                mq_well.server_configure.mq_client_configure.uri.value,
+                mq_well
+                    .server_configure
+                    .mq_client_configure
+                    .mq_offline_name
+                    .value,
+            )
+            .await
+            .map_err(|e| {
+                serverdberrors::ServerDbError::TextErr(format!(
+                    "error in initiate mq instance: {:?}",
+                    e
+                ))
+            });
+
+            // run instance
+            match mq_instance {
+                Ok(value) => {
+                    let mut mq = *value;
+
+                    let client = match mq.connect().await {
+                        Ok(cli) => cli,
+                        Err(er) => {
+                            logger::error(&format!("error create client '{:?}'", er));
+                            return; //exit match
+                        }
+                    };
+
+                    logger::info("server is connected to the MQ");
+
+                    let mut receiver = match mq.subscribe(&client).await {
+                        Ok(rec) => rec,
+                        Err(er) => {
+                            logger::error(&format!("error create client '{:?}'", er));
+                            return; // exit match
+                        }
+                    };
+
+                    logger::info("server is subscribed to the message");
+
+                    loop {
+                        // mq.send("my code in times ".into(), &client).await.unwrap();
+                        let result = mq.receive(&mut receiver).await;
+
+                        match result {
+                            Ok(_) => { /*nothing*/ }
+                            Err(e) => {
+                                logger::error(&format!("error in get frame : {:?}", e));
+                            }
+                        }
+                    }
+                }
+                Err(e) => {
+                    logger::error(&format!("error in initiate mq instance: {:?}", e));
+                }
+            };
+
+            // finish part
             sleep(Duration::from_secs(3)).await;
-            logger::error("==> going to reset the main loop <==")
+            logger::error("==> going to reset the main loop <==");
         }
     });
 
     let signals_task = tokio::spawn(async {
         match tokio::signal::ctrl_c().await {
-            Ok(()) => println!("crtl-c received..."),
+            Ok(()) => {
+                logger::info("crtl-c received.");
+                return;
+            }
             Err(e) => logger::error(&e.to_string()),
         }
     });
@@ -50,9 +123,12 @@ async fn main() -> serverdberrors::Result<()> {
         _ = signals_task => {},
     }
 
+    ///////////////////////////////////
+    // close program
     logger::error("DANGER ==> server closed !<==");
 
-    db_tuple.2.shutdown_immediate().await;
+    database_client.shutdown_immediate().await;
+    logger::error("database closed!");
 
     Ok(())
 }
