@@ -54,6 +54,19 @@
             "env": {
                 "LD_LIBRARY_PATH": "${workspaceFolder}/target/debug/:${env:LD_LIBRARY_PATH}"
             },
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Export Checker",
+            "program": "${workspaceFolder}/target/debug/export_checker",
+            "args": [],
+            "cwd": "${workspaceFolder}/target/debug",
+            "stopOnEntry": false,
+            "preLaunchTask": "build_export_checker", 
+            "env": {
+                "LD_LIBRARY_PATH": "${workspaceFolder}/target/debug/:${env:LD_LIBRARY_PATH}"
+            },
         }
     ]
 }

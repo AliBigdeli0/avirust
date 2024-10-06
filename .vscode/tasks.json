@@ -180,6 +180,20 @@
       "dependsOn":"linux_per_build",
     }, 
     {
+      "label": "build_export_checker",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["build", "-p", "export_checker"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "options": {
+        "cwd": "${workspaceFolder}",
+      },
+      "dependsOn":"linux_per_build",
+    },
+    {
       "label": "linux_per_build", 
       "type": "shell", 
       "command": "make", 

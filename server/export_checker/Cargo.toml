@@ -1,0 +1,8 @@
+[package]
+name = "export_checker"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+logger = { version = "0.1.0", path = "../../utility/logger" }
+tokio = { version="1.35.0"}

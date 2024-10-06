@@ -11,12 +11,19 @@ RELEASE_ADDITIONAL_FILES=
 
 # ---------------------------------
 # run programs from source code 
+run_export_checker:: build_export_checker 
+	@cd $(LINUX_ROOT_DEBUG_PATH); ./export_checker
+
 run_win_ui:: 
 	@cargo build -p ui 
 	@cd $(LINUX_ROOT_DEBUG_PATH); ./ui
 
 # ---------------------------------
 # build
+
+build_export_checker:: 
+	@cargo build -p export_checker
+
 build_server_db: 
 	@cargo build -p server_db 
 	@cd $(LINUX_ROOT_DEBUG_PATH); ./server_db
@@ -35,6 +42,9 @@ _deploy_win_all::
 	@cargo clean --target=x86_64-pc-windows-gnu --release
 	@cargo build --target=x86_64-pc-windows-gnu -p $(PROJECT_NAME) --release
 	@cd $(MINGW_TARGET_RELEASE);rm -rf ~/Desktop/share/$(PROJECT_NAME).zip  ;zip -r ~/Desktop/share/$(PROJECT_NAME).zip  $(PROJECT_NAME).exe $(RELEASE_ADDITIONAL_FILES)
+
+build_win_export_checker::
+	
 
 build_win_ui:: copy_opengl_file
 	@cargo build -p ui
