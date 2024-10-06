@@ -5,6 +5,7 @@ use chrono::{
 
 const BSON_TIME_FORMAT: &str = "%Y-%m-%dT%H:%M:%SZ";
 const EXCEL_TIME_FORMAT: &str = "%m/%d/%Y %H:%M:%S";
+const FILENAME_DATE_FORMAT: &str = "%Y_%m_%d";
 
 pub fn get_now_utc() -> DateTime<Utc> {
     Utc::now()
@@ -77,6 +78,18 @@ pub fn convert_naive_to_local(
     }
 }
 
+pub fn extract_date_from_file_name(
+    file_name: &str,
+) -> Result<NaiveDate, Box<dyn std::error::Error>> {
+    if file_name.starts_with("c_") {
+        let file_name_chars: Vec<char> = file_name[13..].chars().collect();
+        let date_str: String = file_name_chars.into_iter().collect();
+        Ok(NaiveDate::parse_from_str(&date_str, FILENAME_DATE_FORMAT)?)
+    } else {
+        Err("the file name should starts with 'c_'".into())
+    }
+}
+
 #[cfg(test)]
 mod test_time_helper {
     use chrono::{Datelike, Timelike};
@@ -116,5 +129,16 @@ mod test_time_helper {
             Ok(_) => panic!("shoudl not set to this message"),
             Err(_) => assert!(true),
         }
+    }
+
+    #[test]
+    fn test_extract_date_from_string() {
+        let valid_string = "c_0123456789_23_03_31";
+        // let invalid_string = "c__23_03_31";
+
+        let valid_date = extract_date_from_file_name(&valid_string).unwrap();
+        assert_eq!(valid_date.year(), 23);
+        assert_eq!(valid_date.month(), 03);
+        assert_eq!(valid_date.day(), 31);
     }
 }

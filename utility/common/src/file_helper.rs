@@ -1,5 +1,7 @@
 use std::env::current_dir;
+
 use std::fs::{self, DirEntry, ReadDir};
+use std::io::Error;
 use std::path::PathBuf;
 
 pub const EXCEL_FILE_EXTENSION: &str = "xls";
@@ -119,6 +121,28 @@ pub fn change_working_directory() {
     println!("working directory is: {:?}", current_path);
 }
 
+pub fn get_all_files(dir: &PathBuf) -> Result<Vec<PathBuf>, std::io::Error> {
+    if dir.is_dir() {
+        let mut ret_files: Vec<PathBuf> = Vec::new();
+        for entry in fs::read_dir(dir)? {
+            let en = entry?;
+            let path = en.path();
+            if path.is_file() {
+                if let Some(file_name) = path.file_name() {
+                    ret_files.push(PathBuf::from(file_name.to_os_string()));
+                }
+            }
+        }
+
+        Ok(ret_files)
+    } else {
+        Err(Error::new(
+            std::io::ErrorKind::InvalidData,
+            "the dir variable should be a directory not a file",
+        ))
+    }
+}
+
 #[cfg(test)]
 mod integration_test {
     use super::*;
@@ -142,6 +166,8 @@ mod integration_test {
 
 #[cfg(test)]
 mod unit_tests {
+    use std::env;
+
     use super::*;
 
     #[test]
@@ -159,8 +185,18 @@ mod unit_tests {
     }
 
     #[test]
-    fn generate_yaml() {
+    fn test_generate_yaml() {
         let file_name = generate_yaml_extention(String::from("ali"));
         assert!(file_name.ends_with(".yaml"))
+    }
+
+    #[test]
+    fn test_get_files() {
+        let current_dir = env::current_dir().unwrap();
+        println!("current path  : {}", current_dir.to_string_lossy());
+
+        let list_names = get_all_files(&current_dir).unwrap();
+
+        assert_eq!(list_names.len(), 1)
     }
 }
