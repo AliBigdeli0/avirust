@@ -8,6 +8,7 @@ LINUX_ROOT_DEBUG_PATH:=$(PWD)/target/debug
 MINGW_TARGET_RELEASE=$(PWD)/target/x86_64-pc-windows-gnu/release
 PROJECT_NAME="client"
 RELEASE_ADDITIONAL_FILES=
+WIN_FLAGS=--target=x86_64-pc-windows-gnu
 
 # ---------------------------------
 # run programs from source code 
@@ -39,12 +40,13 @@ deploy_win_client::
 	@make _deploy_win_all PROJECT_NAME=client RELEASE_ADDITIONAL_FILES=static/*
 
 _deploy_win_all::
-	@cargo clean --target=x86_64-pc-windows-gnu --release
-	@cargo build --target=x86_64-pc-windows-gnu -p $(PROJECT_NAME) --release
+	@cargo clean $(WIN_FLAGS) --release
+	@cargo build $(WIN_FLAGS) -p $(PROJECT_NAME) --release
 	@cd $(MINGW_TARGET_RELEASE);rm -rf ~/Desktop/share/$(PROJECT_NAME).zip  ;zip -r ~/Desktop/share/$(PROJECT_NAME).zip  $(PROJECT_NAME).exe $(RELEASE_ADDITIONAL_FILES)
 
 build_win_export_checker::
-	
+	@cargo clean $(WIN_FLAGS) --release
+	@cargo build $(WIN_FLAGS) -p export_checker --release
 
 build_win_ui:: copy_opengl_file
 	@cargo build -p ui

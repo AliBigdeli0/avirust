@@ -12,7 +12,7 @@ async fn main() {
 }
 
 async fn init() {
-    logger::init_with_name("export_checker");
+    logger::init_with_name("export_checker.log");
     logger::info("the logger has been initiated...");
 }
 
