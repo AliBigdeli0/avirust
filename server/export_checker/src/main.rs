@@ -2,6 +2,8 @@
 
 extern crate logger;
 
+mod tag_reader;
+
 pub fn get_version() -> String {
     "1.0.0".into()
 }
@@ -9,6 +11,8 @@ pub fn get_version() -> String {
 #[tokio::main]
 async fn main() {
     init().await;
+
+    tag_reader::start().await;
 }
 
 async fn init() {
