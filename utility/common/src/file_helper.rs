@@ -90,7 +90,13 @@ pub fn all_files_in_directory<'a>(
 
     let fs_data = meta_data.ok().unwrap();
     if !fs_data.is_dir() {
-        return Ok(list_files);
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            format!(
+                "the path '{}' is not a directory",
+                directory_path.to_string_lossy(),
+            ),
+        ));
     }
 
     let entries: ReadDir = fs::read_dir(directory_path).unwrap();
