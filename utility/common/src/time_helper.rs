@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use chrono::{
     format::{DelayedFormat, StrftimeItems},
     DateTime, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc,
@@ -5,7 +7,7 @@ use chrono::{
 
 const BSON_TIME_FORMAT: &str = "%Y-%m-%dT%H:%M:%SZ";
 const EXCEL_TIME_FORMAT: &str = "%m/%d/%Y %H:%M:%S";
-const FILENAME_DATE_FORMAT: &str = "%Y_%m_%d";
+const FILENAME_DATE_FORMAT: &str = "%y_%m_%d";
 
 pub fn get_now_utc() -> DateTime<Utc> {
     Utc::now()
@@ -78,11 +80,19 @@ pub fn convert_naive_to_local(
     }
 }
 
-pub fn extract_date_from_file_name(
+pub fn remove_extension(file_name: &str) -> &str {
+    let path = Path::new(file_name);
+    path.file_stem()
+        .and_then(|stem| stem.to_str())
+        .unwrap_or(file_name)
+}
+
+pub fn extract_date_from_xml_file(
     file_name: &str,
 ) -> Result<NaiveDate, Box<dyn std::error::Error>> {
-    if file_name.starts_with("c_") {
-        let file_name_chars: Vec<char> = file_name[13..].chars().collect();
+    let removed_extension_file = remove_extension(file_name);
+    if removed_extension_file.starts_with("c_") {
+        let file_name_chars: Vec<char> = removed_extension_file[13..].chars().collect();
         let date_str: String = file_name_chars.into_iter().collect();
         Ok(NaiveDate::parse_from_str(&date_str, FILENAME_DATE_FORMAT)?)
     } else {
@@ -133,12 +143,23 @@ mod test_time_helper {
 
     #[test]
     fn test_extract_date_from_string() {
-        let valid_string = "c_0123456789_23_03_31";
-        // let invalid_string = "c__23_03_31";
+        let valid_string = "c_0123456789_23_03_31.xml";
 
-        let valid_date = extract_date_from_file_name(&valid_string).unwrap();
-        assert_eq!(valid_date.year(), 23);
+        let valid_date = extract_date_from_xml_file(&valid_string).unwrap();
+        assert_eq!(valid_date.year(), 2023);
         assert_eq!(valid_date.month(), 03);
         assert_eq!(valid_date.day(), 31);
+
+        let invalid_string_without_start = "0123456789_23_03_31.xml";
+        match extract_date_from_xml_file(&invalid_string_without_start) {
+            Ok(_) => assert!(false),
+            Err(_) => assert!(true),
+        }
+
+        let invalid_string_time = "c_0123456789_23_31_03.xml";
+        match extract_date_from_xml_file(&invalid_string_time) {
+            Ok(_) => assert!(false),
+            Err(_) => assert!(true),
+        }
     }
 }
