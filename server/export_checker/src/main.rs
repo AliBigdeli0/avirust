@@ -12,7 +12,7 @@ pub fn get_version() -> String {
 async fn main() {
     init().await;
 
-    tag_reader::start().await;
+    tag_reader::start().await.unwrap();
 }
 
 async fn init() {
