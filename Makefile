@@ -48,6 +48,10 @@ build_win_export_checker::
 	@cargo clean $(WIN_FLAGS) --release
 	@cargo build $(WIN_FLAGS) -p export_checker --release
 
+build_win_import_ui:: 
+	@cargo clean $(WIN_FLAGS) --release 
+	@cargo build $(WIN_FLAGS) -p import_ui --release 
+
 build_win_ui:: copy_opengl_file
 	@cargo build -p ui
 
