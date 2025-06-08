@@ -44,63 +44,78 @@ async fn main() -> serverdberrors::Result<()> {
             ///////////////////////////////////
             // mq init
             let mq_well = well.clone();
-            let mq_instance = mq::mq::init_session(
-                mq_well.server_configure.mq_client_configure.uri.value,
-                mq_well
-                    .server_configure
-                    .mq_client_configure
-                    .mq_offline_name
-                    .value,
-            )
-            .await
-            .map_err(|e| {
-                serverdberrors::ServerDbError::TextErr(format!(
-                    "error in initiate mq instance: {:?}",
-                    e
-                ))
-            });
+            let mq_name = mq_well.server_configure.mq_client_configure.uri.value;
+            let mq_address = mq_well
+                .server_configure
+                .mq_client_configure
+                .mq_offline_name
+                .value;
 
-            // run instance
+            let mq_instance = mq::mq::init_session(mq_name, mq_address, mq::mq::TypeOfMQ::Stomp)
+                .await
+                .map_err(|e| {
+                    serverdberrors::ServerDbError::TextErr(format!(
+                        "error in initiate mq instance: {:?}",
+                        e
+                    ))
+                });
+
             match mq_instance {
-                Ok(value) => {
-                    let mut mq = *value;
+                Ok(mut value) => {
+                    let mq = value.as_mut();
+                    let connection_result = mq.connect_to_mq().await;
 
-                    let client = match mq.connect().await {
-                        Ok(cli) => cli,
-                        Err(er) => {
-                            logger::error(&format!("error create client '{:?}'", er));
-                            return; //exit match
-                        }
-                    };
-
-                    logger::info("server is connected to the MQ");
-
-                    let mut receiver = match mq.subscribe(&client).await {
-                        Ok(rec) => rec,
-                        Err(er) => {
-                            logger::error(&format!("error create client '{:?}'", er));
-                            return; // exit match
-                        }
-                    };
-
-                    logger::info("server is subscribed to the message");
-
-                    loop {
-                        // mq.send("my code in times ".into(), &client).await.unwrap();
-                        let result = mq.receive(&mut receiver).await;
-
-                        match result {
-                            Ok(_) => { /*nothing*/ }
-                            Err(e) => {
-                                logger::error(&format!("error in get frame : {:?}", e));
-                            }
-                        }
+                    if let Ok(_) = connection_result {
+                        logger::info("Connected to the mq");
+                    } else if let Err(err) = connection_result {
+                        logger::error(&format!("Error in initiate mq instance: {:?}", err))
                     }
                 }
-                Err(e) => {
-                    logger::error(&format!("error in initiate mq instance: {:?}", e));
-                }
-            };
+                Err(err) => logger::error(&format!("Error in initiate mq instance: {:?}", err)),
+            }
+
+            // run instance
+            // match mq_instance {
+            //     Ok(value) => {
+            //         let mut mq = *value;
+
+            //         let client = match mq.connect().await {
+            //             Ok(cli) => cli,
+            //             Err(er) => {
+            //                 logger::error(&format!("error create client '{:?}'", er));
+            //                 return; //exit match
+            //             }
+            //         };
+
+            //         logger::info("server is connected to the MQ");
+
+            //         let mut receiver = match mq.subscribe(&client).await {
+            //             Ok(rec) => rec,
+            //             Err(er) => {
+            //                 logger::error(&format!("error create client '{:?}'", er));
+            //                 return; // exit match
+            //             }
+            //         };
+
+            //         logger::info("server is subscribed to the message");
+
+            //         loop {
+            //             // mq.send("my code in times ".into(), &client).await.unwrap();
+
+            //             let result = mq.receive(&mut receiver).await;
+
+            //             match result {
+            //                 Ok(_) => { /*nothing*/ }
+            //                 Err(e) => {
+            //                     logger::error(&format!("error in get frame : {:?}", e));
+            //                 }
+            //             }
+            //         }
+            //     }
+            //     Err(e) => {
+            //         logger::error(&format!("error in initiate mq instance: {:?}", e));
+            //     }
+            // };
 
             // finish part
             sleep(Duration::from_secs(3)).await;
