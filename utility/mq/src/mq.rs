@@ -4,19 +4,22 @@ use core::panic;
 use std::{future::Future, pin::Pin};
 
 use crate::mqerror::{self, MqError};
+use crate::openwire::OpenWire;
 
 use stomp_rs::{
     client::{Client, ClientBuilder},
     protocol::{frame::Subscribe, Frame, ServerCommand},
 };
+
 use tokio::sync::mpsc::{channel, Receiver, Sender};
 
 type MQBytes = Vec<u8>;
 
 #[derive(Clone)]
 pub enum TypeOfMQ {
-    Stomp = 0,
-    Lappin = 1,
+    Stomp = 0x0,
+    Lappin = 0xf,
+    OpenWire = 0xff,
 }
 
 // structures and traits
@@ -26,12 +29,15 @@ pub trait MQData: Send {
     fn set(&mut self, bytes: &mut MQBytes);
 }
 
-pub trait MQActions: Send {
+pub trait MQActions<'a>: Send {
     fn connect_to_mq(
         &mut self,
     ) -> Pin<Box<dyn Future<Output = mqerror::Result<Box<dyn MQData>>> + Send + '_>>;
-    // fn send(&self) -> mqerror::Result<&dyn MQData>;
-    // fn recieve(&self) -> mqerror::Result<&dyn MQData>;
+
+    fn receive(
+        &self,
+        receiver_fn: Box<dyn Fn(Box<MQBytes>) + Send>,
+    ) -> Pin<Box<dyn Future<Output = mqerror::Result<()>> + Send + '_>>;
 }
 
 pub struct InternalMQData {
@@ -54,15 +60,69 @@ impl MQData for InternalMQData {
     }
 }
 
-pub struct InternalMQStomp {
+// ##################################
+// OpenWire
+struct InternalOpenwire<'a> {
+    address: &'a str,
+    open_wire: Option<Box<OpenWire<'a>>>,
+}
+
+impl<'a> InternalOpenwire<'a> {
+    pub fn new(address: &'a str) -> Self {
+        Self {
+            address,
+            open_wire: None,
+        }
+    }
+}
+
+impl<'a> Drop for InternalOpenwire<'a> {
+    fn drop(&mut self) {
+        if let Some(openwire) = self.open_wire.as_mut() {
+            if let Ok(rt) = tokio::runtime::Runtime::new() {
+                let _ = rt.block_on(openwire.close());
+            }
+        }
+    }
+}
+
+impl<'a> MQActions<'a> for InternalOpenwire<'a> {
+    fn connect_to_mq(
+        &mut self,
+    ) -> Pin<Box<dyn Future<Output = mqerror::Result<Box<dyn MQData>>> + Send + '_>> {
+        Box::pin(async move {
+            let mut openwire_instance = OpenWire::new(self.address);
+
+            openwire_instance.start().await?;
+
+            self.open_wire = Some(Box::new(openwire_instance));
+
+            let conn: MQBytes = Vec::<u8>::new();
+            let internal_connection = InternalMQData::new(conn);
+            let internal_connection_box: Box<dyn MQData> = Box::new(internal_connection);
+            Ok(internal_connection_box)
+        })
+    }
+
+    fn receive(
+        &self,
+        receiver_fn: Box<dyn Fn(Box<MQBytes>) + Send>,
+    ) -> Pin<Box<dyn Future<Output = mqerror::Result<()>> + Send + '_>> {
+        todo!()
+    }
+}
+
+// ##################################
+// Stomp
+pub struct InternalMQStomp<'a> {
     host: String,
     port: u16,
-    mqname: String,
+    mqname: &'a str,
     client: Option<Box<Client>>,
 }
 
-impl InternalMQStomp {
-    pub fn new(host: String, _port: u16, mqname: String) -> Self {
+impl<'a> InternalMQStomp<'a> {
+    pub fn new(host: String, _port: u16, mqname: &'a str) -> Self {
         Self {
             host,
             port: 61613,
@@ -87,20 +147,24 @@ impl InternalMQStomp {
         Ok(Box::new(client))
     }
 
-    pub async fn subscribe(
-        &self,
-        client: &Client,
-    ) -> mqerror::Result<Receiver<Frame<ServerCommand>>> {
+    pub async fn subscribe(&self) -> mqerror::Result<Receiver<Frame<ServerCommand>>> {
         let (sender, receiver): (Sender<Frame<ServerCommand>>, Receiver<Frame<ServerCommand>>) =
             channel(16);
         let subs = Subscribe::new_with_random_id(self.get_queue_name());
 
-        client
-            .subscribe(subs, sender)
-            .await
-            .map_err(|e| mqerror::MqError::TextErr(e.to_string()))?;
+        if let Some(self_client) = &self.client {
+            self_client
+                .as_ref()
+                .subscribe(subs, sender)
+                .await
+                .map_err(|e| mqerror::MqError::TextErr(e.to_string()))?;
 
-        Ok(receiver)
+            Ok(receiver)
+        } else {
+            Err(mqerror::MqError::TextErr(
+                "error in subscribe into mq!".to_string(),
+            ))
+        }
     }
 
     pub async fn receive(
@@ -128,42 +192,57 @@ impl InternalMQStomp {
             .map_err(|e| mqerror::MqError::TextErr(e.to_string()))?;
         Ok(())
     }
+
+    pub fn make_bytes(&self, mq_str: &'a str) -> Box<MQBytes> {
+        let mq_bytes: MQBytes = String::from(mq_str).into_bytes();
+
+        Box::new(mq_bytes)
+    }
 }
 
-impl MQActions for InternalMQStomp {
+impl<'a> MQActions<'a> for InternalMQStomp<'a> {
     fn connect_to_mq(
         &mut self,
     ) -> Pin<Box<dyn Future<Output = mqerror::Result<Box<dyn MQData>>> + Send + '_>> {
         Box::pin(async move {
-            let conn: MQBytes = Vec::<u8>::new();
-
             let client = self.connect().await?;
 
             self.client = Some(client);
 
+            let conn: MQBytes = Vec::<u8>::new();
             let internal_connection = InternalMQData::new(conn);
-
             let internal_connection_box: Box<dyn MQData> = Box::new(internal_connection);
             Ok(internal_connection_box)
         })
     }
 
-    // fn send(&self) -> mqerror::Result<&dyn MQData> {
-    //     todo!()
-    // }
+    fn receive(
+        &self,
+        receiver_fn: Box<dyn Fn(Box<MQBytes>) + Send>,
+    ) -> Pin<Box<dyn Future<Output = mqerror::Result<()>> + Send + '_>> {
+        Box::pin(async move {
+            let mut subscriber = self.subscribe().await?;
 
-    // fn recieve(&self) -> mqerror::Result<&dyn MQData> {
-    //     todo!()
-    // }
+            loop {
+                // receiver.recv().await;
+                let bytes = subscriber.recv().await;
+
+                if let Some(bytes) = bytes {
+                    let mq_bytes_ref = self.make_bytes(&bytes.body);
+                    receiver_fn(mq_bytes_ref);
+                }
+            }
+        })
+    }
 }
 
 /////////////////////////////////
 // public functions
 pub async fn init_session<'a>(
-    mq_address: String,
-    mqname: String,
+    mq_address: &'a str,
+    mqname: &'a str,
     type_of_mq: TypeOfMQ,
-) -> mqerror::Result<Box<dyn MQActions>> {
+) -> mqerror::Result<Box<dyn MQActions<'a> + 'a>> {
     //create session
     let purl = url::Url::parse(&mq_address)
         .map_err(|e: url::ParseError| MqError::TextErr(e.to_string()))?;
@@ -177,8 +256,13 @@ pub async fn init_session<'a>(
     //end
     match type_of_mq {
         TypeOfMQ::Lappin => panic!("This part is not implemented yet!"),
+        TypeOfMQ::OpenWire => {
+            let openwire_instance = InternalOpenwire::new(mq_address);
+            Ok(Box::new(openwire_instance))
+        }
         TypeOfMQ::Stomp => {
-            let instance = InternalMQStomp::new(host.to_string(), port, mqname);
+            let instance: InternalMQStomp<'a> =
+                InternalMQStomp::new(host.to_string(), port, mqname);
             Ok(Box::new(instance))
         }
     }

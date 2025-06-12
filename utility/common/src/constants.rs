@@ -7,6 +7,6 @@ mod test_constatns {
 
     #[test]
     fn test_constants() {
-        assert_eq!(UI_APP_NAME, "MED Well View");
+        assert_eq!(UI_APP_NAME, "Server Data Receiver");
     }
 }

@@ -44,21 +44,36 @@ async fn main() -> serverdberrors::Result<()> {
             ///////////////////////////////////
             // mq init
             let mq_well = well.clone();
-            let mq_name = mq_well.server_configure.mq_client_configure.uri.value;
+            let mq_name = mq_well
+                .server_configure
+                .mq_client_configure
+                .uri
+                .value
+                .as_ref();
+
             let mq_address = mq_well
                 .server_configure
                 .mq_client_configure
                 .mq_offline_name
                 .value;
 
-            let mq_instance = mq::mq::init_session(mq_name, mq_address, mq::mq::TypeOfMQ::Stomp)
-                .await
-                .map_err(|e| {
-                    serverdberrors::ServerDbError::TextErr(format!(
-                        "error in initiate mq instance: {:?}",
-                        e
-                    ))
-                });
+            // let mq_address = mq_address
+            //     .replace("61616", "61613")
+            //     .replace("http://", "stomp://")
+            //     .trim_end_matches('/')
+            //     .to_string();
+
+            let mq_address_str = mq_address.as_str();
+
+            let mq_instance =
+                mq::mq::init_session(mq_name, mq_address_str, mq::mq::TypeOfMQ::OpenWire)
+                    .await
+                    .map_err(|e| {
+                        serverdberrors::ServerDbError::TextErr(format!(
+                            "error in initiate mq instance: {:?}",
+                            e
+                        ))
+                    });
 
             match mq_instance {
                 Ok(mut value) => {
@@ -67,6 +82,15 @@ async fn main() -> serverdberrors::Result<()> {
 
                     if let Ok(_) = connection_result {
                         logger::info("Connected to the mq");
+
+                        let _ = mq
+                            .receive(Box::new(|data| {
+                                logger::info(&format!(
+                                    "DATA RECEIVED ==> {}",
+                                    String::from_utf8(data.to_vec()).expect("invalid data")
+                                ));
+                            }))
+                            .await;
                     } else if let Err(err) = connection_result {
                         logger::error(&format!("Error in initiate mq instance: {:?}", err))
                     }

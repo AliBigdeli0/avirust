@@ -5,7 +5,7 @@ use common::constants::SERVER_DB_APP_NAME;
 #[command(
     name = SERVER_DB_APP_NAME,
     author = "Ali Bigdeli <alibigdeli66@gmail.com>",
-    about = "MED client actions are  handled in this part"
+    about = "Thie program is reading from client's MQ in STOMP standard."
 )]
 pub struct ServerDbArgs {
     #[arg(
