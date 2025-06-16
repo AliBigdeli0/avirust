@@ -57,12 +57,6 @@ async fn main() -> serverdberrors::Result<()> {
                 .mq_offline_name
                 .value;
 
-            // let mq_address = mq_address
-            //     .replace("61616", "61613")
-            //     .replace("http://", "stomp://")
-            //     .trim_end_matches('/')
-            //     .to_string();
-
             let mq_address_str = mq_address.as_str();
 
             let mq_instance =
@@ -70,7 +64,7 @@ async fn main() -> serverdberrors::Result<()> {
                     .await
                     .map_err(|e| {
                         serverdberrors::ServerDbError::TextErr(format!(
-                            "error in initiate mq instance: {:?}",
+                            "Error in initiating mq instance: {:?}",
                             e
                         ))
                     });
@@ -81,13 +75,14 @@ async fn main() -> serverdberrors::Result<()> {
                     let connection_result = mq.connect_to_mq().await;
 
                     if let Ok(_) = connection_result {
-                        logger::info("Connected to the mq");
+                        logger::info("Successfully connected to MQ!");
 
                         let _ = mq
                             .receive(Box::new(|data| {
                                 logger::info(&format!(
                                     "DATA RECEIVED ==> {}",
-                                    String::from_utf8(data.to_vec()).expect("invalid data")
+                                    String::from_utf8(data.to_vec())
+                                        .expect("Invalid data from string!")
                                 ));
                             }))
                             .await;
@@ -98,52 +93,9 @@ async fn main() -> serverdberrors::Result<()> {
                 Err(err) => logger::error(&format!("Error in initiate mq instance: {:?}", err)),
             }
 
-            // run instance
-            // match mq_instance {
-            //     Ok(value) => {
-            //         let mut mq = *value;
-
-            //         let client = match mq.connect().await {
-            //             Ok(cli) => cli,
-            //             Err(er) => {
-            //                 logger::error(&format!("error create client '{:?}'", er));
-            //                 return; //exit match
-            //             }
-            //         };
-
-            //         logger::info("server is connected to the MQ");
-
-            //         let mut receiver = match mq.subscribe(&client).await {
-            //             Ok(rec) => rec,
-            //             Err(er) => {
-            //                 logger::error(&format!("error create client '{:?}'", er));
-            //                 return; // exit match
-            //             }
-            //         };
-
-            //         logger::info("server is subscribed to the message");
-
-            //         loop {
-            //             // mq.send("my code in times ".into(), &client).await.unwrap();
-
-            //             let result = mq.receive(&mut receiver).await;
-
-            //             match result {
-            //                 Ok(_) => { /*nothing*/ }
-            //                 Err(e) => {
-            //                     logger::error(&format!("error in get frame : {:?}", e));
-            //                 }
-            //             }
-            //         }
-            //     }
-            //     Err(e) => {
-            //         logger::error(&format!("error in initiate mq instance: {:?}", e));
-            //     }
-            // };
-
             // finish part
             sleep(Duration::from_secs(3)).await;
-            logger::error("==> going to reset the main loop <==");
+            logger::error("==> Going to reset the main loop <==");
         }
     });
 
@@ -164,21 +116,21 @@ async fn main() -> serverdberrors::Result<()> {
 
     ///////////////////////////////////
     // close program
-    logger::error("DANGER ==> server closed !<==");
+    logger::error("DANGER ==> Server exited! <==");
 
     database_client.shutdown_immediate().await;
-    logger::error("database closed!");
+    logger::error("Database closed!");
 
     Ok(())
 }
 
 fn print_info(args: ServerDbArgs, well: entity::model::db::Well) {
-    logger::info(format!("Well ID '{}'", args.wellid).as_str());
-    logger::info(format!("MongoDb connection '{}'", args.connectionstring).as_str());
-    logger::info(format!("Well name Is : '{}'", well.name).as_str());
+    logger::info(format!("Well ID is : '{}'", args.wellid).as_str());
+    logger::info(format!("MongoDb connection is : '{}'", args.connectionstring).as_str());
+    logger::info(format!("Well name is : '{}'", well.name).as_str());
     logger::info(
         format!(
-            "MQ address '{}'",
+            "MQ address is : '{}'",
             well.server_configure.mq_client_configure.uri.value
         )
         .as_str(),
@@ -206,25 +158,25 @@ async fn read_well_fromdb<'a>(
         .await
         .map_err(|_| {
             serverdberrors::ServerDbError::TextErr(
-                format!("error in database connection").to_string(),
+                format!("Error in database connection").to_string(),
             )
         })?;
 
     let all_wells = db::mongo::read_all_wells(db.clone())
         .await
-        .map_err(|_| serverdberrors::ServerDbError::TextErr("error in read all wells".into()))?;
+        .map_err(|_| serverdberrors::ServerDbError::TextErr("Error in read all wells".into()))?;
 
     let well_iter = all_wells.iter().find(|well| well.id == args.wellid);
 
     if well_iter.is_none() {
-        println!("error in get well from db with id : {}", args.wellid);
+        println!("Error in get well from db with id : {}", args.wellid);
         return Err(ServerDbError::TextErr(
-            "selected well does not exist in well".into(),
+            "Eelected well does not exist in well".into(),
         ));
     }
 
     let well = well_iter.ok_or(serverdberrors::ServerDbError::TextErr(
-        "error in convert to well".into(),
+        "Error in convert to well".into(),
     ))?;
 
     Ok((well, db, client))

@@ -78,11 +78,7 @@ impl<'a> InternalOpenwire<'a> {
 
 impl<'a> Drop for InternalOpenwire<'a> {
     fn drop(&mut self) {
-        if let Some(openwire) = self.open_wire.as_mut() {
-            if let Ok(rt) = tokio::runtime::Runtime::new() {
-                let _ = rt.block_on(openwire.close());
-            }
-        }
+        /* nothing */
     }
 }
 
@@ -90,9 +86,9 @@ impl<'a> MQActions<'a> for InternalOpenwire<'a> {
     fn connect_to_mq(
         &mut self,
     ) -> Pin<Box<dyn Future<Output = mqerror::Result<Box<dyn MQData>>> + Send + '_>> {
-        Box::pin(async move {
-            let mut openwire_instance = OpenWire::new(self.address);
+        let mut openwire_instance = OpenWire::new(self.address);
 
+        Box::pin(async move {
             openwire_instance.start().await?;
 
             self.open_wire = Some(Box::new(openwire_instance));
@@ -106,9 +102,13 @@ impl<'a> MQActions<'a> for InternalOpenwire<'a> {
 
     fn receive(
         &self,
-        receiver_fn: Box<dyn Fn(Box<MQBytes>) + Send>,
+        _: Box<dyn Fn(Box<MQBytes>) + Send>,
     ) -> Pin<Box<dyn Future<Output = mqerror::Result<()>> + Send + '_>> {
-        todo!()
+        Box::pin(async move {
+            logger::info("inside the receiver!!!");
+
+            Ok(())
+        })
     }
 }
 
@@ -125,7 +125,7 @@ impl<'a> InternalMQStomp<'a> {
     pub fn new(host: String, _port: u16, mqname: &'a str) -> Self {
         Self {
             host,
-            port: 61613,
+            port: 61616,
             mqname,
             client: None,
         }
@@ -261,8 +261,7 @@ pub async fn init_session<'a>(
             Ok(Box::new(openwire_instance))
         }
         TypeOfMQ::Stomp => {
-            let instance: InternalMQStomp<'a> =
-                InternalMQStomp::new(host.to_string(), port, mqname);
+            let instance: InternalMQStomp<'a> = InternalMQStomp::new(host.into(), port, mqname);
             Ok(Box::new(instance))
         }
     }
