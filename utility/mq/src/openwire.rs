@@ -5,13 +5,15 @@ use crate::mqerror::{self, MqError};
 
 pub struct OpenWire<'a> {
     address: &'a str,
+    mq_name: &'a str,
     stream: Option<Box<TcpStream>>,
 }
 
 impl<'a> OpenWire<'a> {
-    pub fn new(address: &'a str) -> Self {
+    pub fn new(address: &'a str, mq_name: &'a str) -> Self {
         Self {
             address,
+            mq_name,
             stream: None,
         }
     }

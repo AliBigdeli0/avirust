@@ -7,6 +7,7 @@ pub fn get_version() -> &'static str {
 pub mod mq;
 pub mod mqerror;
 mod openwire;
+mod openwire_commands;
 
 #[cfg(test)]
 mod tests {

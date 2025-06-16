@@ -64,13 +64,15 @@ impl MQData for InternalMQData {
 // OpenWire
 struct InternalOpenwire<'a> {
     address: &'a str,
+    mq_name: &'a str,
     open_wire: Option<Box<OpenWire<'a>>>,
 }
 
 impl<'a> InternalOpenwire<'a> {
-    pub fn new(address: &'a str) -> Self {
+    pub fn new(address: &'a str, mq_name: &'a str) -> Self {
         Self {
             address,
+            mq_name,
             open_wire: None,
         }
     }
@@ -86,7 +88,7 @@ impl<'a> MQActions<'a> for InternalOpenwire<'a> {
     fn connect_to_mq(
         &mut self,
     ) -> Pin<Box<dyn Future<Output = mqerror::Result<Box<dyn MQData>>> + Send + '_>> {
-        let mut openwire_instance = OpenWire::new(self.address);
+        let mut openwire_instance = OpenWire::new(self.address, self.mq_name);
 
         Box::pin(async move {
             openwire_instance.start().await?;
@@ -240,7 +242,7 @@ impl<'a> MQActions<'a> for InternalMQStomp<'a> {
 // public functions
 pub async fn init_session<'a>(
     mq_address: &'a str,
-    mqname: &'a str,
+    mq_name: &'a str,
     type_of_mq: TypeOfMQ,
 ) -> mqerror::Result<Box<dyn MQActions<'a> + 'a>> {
     //create session
@@ -257,11 +259,11 @@ pub async fn init_session<'a>(
     match type_of_mq {
         TypeOfMQ::Lappin => panic!("This part is not implemented yet!"),
         TypeOfMQ::OpenWire => {
-            let openwire_instance = InternalOpenwire::new(mq_address);
+            let openwire_instance = InternalOpenwire::new(mq_address, mq_name);
             Ok(Box::new(openwire_instance))
         }
         TypeOfMQ::Stomp => {
-            let instance: InternalMQStomp<'a> = InternalMQStomp::new(host.into(), port, mqname);
+            let instance: InternalMQStomp<'a> = InternalMQStomp::new(host.into(), port, mq_name);
             Ok(Box::new(instance))
         }
     }
