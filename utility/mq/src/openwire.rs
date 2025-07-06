@@ -1,6 +1,7 @@
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::TcpStream,
+    time::{sleep, Duration},
 };
 use url::Url;
 
@@ -9,13 +10,39 @@ use crate::{
     openwire_commands::OpenWireCommandTypes,
 };
 
+// ###############################################
+// global values
+
+type MQResult<T> = mqerror::Result<T>;
+
+const ACTIVEMQ_HEADER: &str = "\0\0\x01R\x01ActiveMQ";
+const SOCKET_BUFFER_SIZE: usize = 1024;
+const WIRE_FORMAT_INFO: &[u8] = &[
+    0x0A, // Data type = WireFormatInfo
+    0x00, 0x00, 0x00, 0x0A, // Version = 10 (int)
+    // 6 booleans (tightEncoding, stackTrace, tcpNoDelay, cacheEnabled, sizePrefixDisabled, maxFrameSizeEnabled)
+    0x01, // true
+    0x01, // true
+    0x01, // true
+    0x01, // true
+    0x01, // true
+    0x00, // false
+    // long: maxInactivityDuration = 0
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    // long: maxInactivityDurationInitialDelay = 0
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // int: cacheSize = 0
+    0x00, 0x00, 0x00, 0x00, // int: providerVersion = 0
+    0x00, 0x00, 0x00, 0x00, // int: magic = 0
+    0x00, 0x00, 0x00, 0x00,
+];
+
+// ###############################################
+// OpenWire
 pub struct OpenWire<'a> {
     address: &'a str,
     mq_name: &'a str,
     stream: Option<Box<TcpStream>>,
 }
-
-type MQResult<T> = mqerror::Result<T>;
 
 impl<'a> OpenWire<'a> {
     pub fn new(address: &'a str, mq_name: &'a str) -> Self {
@@ -41,12 +68,17 @@ impl<'a> OpenWire<'a> {
 
         let mut stream = self.stream.take().unwrap();
 
+        self.wire_format_info_actions(&mut stream).await?;
+
         loop {
             if !self.check_connection(&mut stream).await? {
                 break;
             }
 
-            logger::info("continue to work!!!!");
+            #[cfg(debug_assertions)]
+            logger::info("main loop is reading!");
+
+            sleep(Duration::from_secs(2)).await;
         }
 
         Ok(())
@@ -69,17 +101,45 @@ impl<'a> OpenWire<'a> {
         }
 
         let socket_content = self
-            .read_from_socket(
+            .read_from_openwire(
                 stream,
                 OpenWireCommandTypes::ConnectionInfo,
                 [0x00, 0x00, 0x00, 0x01],
             )
             .await?;
 
-        Ok(socket_content.starts_with("RActiveMQ"))
+        let res = socket_content.starts_with(ACTIVEMQ_HEADER);
+
+        #[cfg(debug_assertions)]
+        logger::info(&format!(
+            "The socket_content is starting with content  : {res}"
+        ));
+
+        Ok(true)
     }
 
-    async fn read_from_socket(
+    async fn wire_format_info_actions(&mut self, stream: &mut Box<TcpStream>) -> MQResult<()> {
+        self.write_in_socket(stream, &WIRE_FORMAT_INFO).await?;
+
+        let msg = self.read_from_socket(stream).await?;
+
+        let mgs_str = String::from_utf8(msg)
+            .map_err(|e| {
+                MqError::TextErr(format!(
+                    "Error in converting the response packet to string, {}",
+                    e
+                ))
+            })?
+            .trim()
+            .to_string();
+
+        #[cfg(debug_assertions)]
+        logger::info(&format!("Openwire format message is '{}'", mgs_str));
+
+        Ok(())
+    }
+
+    async fn read_from_openwire(
         &mut self,
         stream: &mut Box<TcpStream>,
         mq_type: OpenWireCommandTypes,
@@ -100,41 +160,76 @@ impl<'a> OpenWire<'a> {
             command_id[3],
         ];
 
-        if let Err(e) = stream.write(&openwire_packet).await {
-            logger::error(&format!("Failed to check the openwire connection : {}", e));
-            return Ok("".into());
+        self.write_in_socket(stream, &openwire_packet).await?;
+
+        #[cfg(debug_assertions)]
+        logger::info("The message has been written! going to read it");
+
+        let packet_response_vec = self.read_from_socket(stream).await?;
+
+        if !packet_response_vec.is_empty() {
+            let recieved_message = String::from_utf8(packet_response_vec)
+                .map_err(|e| {
+                    MqError::TextErr(format!(
+                        "Error in converting the response packet to string, {}",
+                        e
+                    ))
+                })?
+                .trim()
+                .to_string();
+
+            #[cfg(debug_assertions)]
+            logger::info(&format!("The message is '{}'", recieved_message));
+
+            // #[cfg(debug_assertions)]
+            // logger::info(&format!("The message size: {}", recieved_message.len()));
+
+            return Ok(recieved_message);
         }
 
-        let mut buf = [0u8; 1024];
+        #[cfg(debug_assertions)]
+        logger::info(&format!("The message is empty"));
+        Ok("".into())
+    }
+
+    async fn write_in_socket(&mut self, stream: &mut Box<TcpStream>, bytes: &[u8]) -> MQResult<()> {
+        if let Err(e) = stream.write(&bytes).await {
+            logger::error(&format!(
+                "Failed to write a message in the openwire socket! '{}'",
+                e
+            ));
+            return Err(MqError::TextErr(
+                "Failed to check the openwire connection!".into(),
+            ));
+        }
+        Ok(())
+    }
+
+    async fn read_from_socket(&mut self, stream: &mut Box<TcpStream>) -> MQResult<Vec<u8>> {
+        let mut buf = [0u8; SOCKET_BUFFER_SIZE];
         let mut packet_response_vec = Vec::new();
 
         loop {
-            let n = match stream.read(&mut buf).await {
+            let read_size: usize = match stream.read(&mut buf).await {
                 Ok(0) => break,
                 Ok(n) => n,
                 Err(e) => {
                     logger::error(&format!("Read error {}", e));
-                    break;
+                    return Err(MqError::TextErr("Failed to read from socket!".into()));
                 }
             };
 
-            packet_response_vec.extend_from_slice(&buf[..n]);
+            // #[cfg(debug_assertions)]
+            // logger::info("In the reading loop!");
+
+            packet_response_vec.extend_from_slice(&buf[..read_size]);
+
+            if read_size < SOCKET_BUFFER_SIZE {
+                break;
+            }
         }
 
-        if !packet_response_vec.is_empty() {
-            let recieved_message = String::from_utf8(packet_response_vec).map_err(|e| {
-                MqError::TextErr(format!(
-                    "Error in converting the response packet to string, {}",
-                    e
-                ))
-            })?;
-
-            logger::info(&format!("The message is {}", recieved_message));
-            // logger::info(&format!("the message size: {}", recieved_message.len()));
-            return Ok(recieved_message);
-        }
-
-        Ok("".into())
+        Ok(packet_response_vec)
     }
 
     fn parse_url(&self) -> mqerror::Result<(String, u16)> {
