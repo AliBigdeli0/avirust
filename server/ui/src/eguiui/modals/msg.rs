@@ -6,6 +6,7 @@ use eframe::egui::{self, Label};
 
 use super::base::BaseModal;
 
+#[allow(dead_code)]
 pub struct MsgBox;
 
 //

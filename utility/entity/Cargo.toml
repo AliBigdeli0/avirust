@@ -8,7 +8,7 @@ crate-type = ["rlib"]
 
 [dependencies]
 base64 = "0.21.5"
-bson = "2.7.0"
+bson = "3.1.0"
 chrono = "0.4.31"
 common = { version = "0.1.0", path = "../common" }
 error-stack = "0.4.1"

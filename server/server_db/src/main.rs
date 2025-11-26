@@ -118,7 +118,7 @@ async fn main() -> serverdberrors::Result<()> {
     // close program
     logger::error("DANGER ==> Server exited! <==");
 
-    database_client.shutdown_immediate().await;
+    database_client.shutdown().await;
     logger::error("Database closed!");
 
     Ok(())

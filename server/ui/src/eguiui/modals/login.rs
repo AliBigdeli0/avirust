@@ -10,6 +10,8 @@ use entity::model::ui_config::{Authenticator, UICommonMemory};
 use crate::eguiui::modals::base::BaseModal;
 
 use super::msg::MsgBox;
+
+#[allow(dead_code)]
 pub struct LoginModal<T: Authenticator> {
     pub base: BaseModal,
     username: String,
@@ -21,6 +23,7 @@ pub struct LoginModal<T: Authenticator> {
     authenticator: Box<T>,
 }
 
+#[allow(dead_code)]
 impl<T: Authenticator> LoginModal<T> {
     pub fn new(memory: Rc<UICommonMemory>, auth: Box<T>) -> Self {
         LoginModal {

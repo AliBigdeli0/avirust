@@ -82,7 +82,7 @@ pub async fn check_db_exist(
 
     client
         .database("admin")
-        .run_command(ping_doc, None)
+        .run_command(ping_doc)
         .await
         .expect("error in database connection");
 
@@ -114,7 +114,7 @@ pub async fn insert_time_from_excel(
     let bson_data = serialize_bson(&time_data)?;
     database
         .collection(&column_name)
-        .insert_one(bson_data, None)
+        .insert_one(bson_data)
         .await?;
 
     Ok(())
@@ -134,7 +134,7 @@ pub async fn remove_time_from_excel(
 
     database
         .collection::<TimeData>(&column_name)
-        .delete_one(filter, None)
+        .delete_one(filter)
         .await?;
 
     Ok(())
@@ -152,14 +152,11 @@ async fn read_all_from_db<'a, T>(
     collection_name: &'a str,
 ) -> Result<&'a Vec<T>, Error>
 where
-    T: serde::de::DeserializeOwned + 'a,
+    T: serde::de::DeserializeOwned + 'a + std::marker::Sync + std::marker::Send,
 {
     let mut return_documents: Vec<T> = Vec::new();
 
-    let mut cursor: Cursor<T> = database
-        .collection(collection_name)
-        .find(None, None)
-        .await?;
+    let mut cursor: Cursor<T> = database.collection(collection_name).find(doc! {}).await?;
 
     while cursor.advance().await? {
         let well = cursor.deserialize_current()?;

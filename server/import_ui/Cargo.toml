@@ -4,13 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tokio = { version="1.35.0"}
+tokio = { version = "1.35.0" }
 argparse = "0.2.2"
 common = { version = "0.1.0", path = "../../utility/common" }
 db = { version = "0.1.0", path = "../../utility/db" }
 entity = { version = "0.1.0", path = "../../utility/entity" }
 excel = { version = "0.1.0", path = "../../utility/excel" }
 logger = { version = "0.1.0", path = "../../utility/logger" }
-mongodb = "2.7.1"
+mongodb = "3.2.5"
 futures = "0.3.29"
-

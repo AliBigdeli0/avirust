@@ -11,10 +11,8 @@ logger = { version = "0.1.0", path = "../../utility/logger" }
 mq = { version = "0.1.0", path = "../../utility/mq" }
 tokio = { version = "1.34.0", features = ["full"] }
 tokio-signal = "0.2.9"
-mongodb = "2.7.1"
+mongodb = "3.2.5"
 clap = { version = "4.5.13", features = ["derive"] }
 
 [target.x86_64-pc-windows-gnu]
 linker = "x86_64-w64-mingw32-gcc"
-
-

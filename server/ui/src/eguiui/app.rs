@@ -7,6 +7,8 @@ use entity::model::ui_config::{SimpleAuthenticator, UICommonMemory};
 
 use crate::eguiui::modals::login::LoginModal;
 
+#[allow(dead_code)]
+
 pub struct App {
     login_modal: LoginModal<SimpleAuthenticator>,
     open_login_at_startup: bool,
