@@ -7,7 +7,7 @@ edition = "2024"
 crate-type = ["rlib"]
 
 [dependencies]
-base64 = "0.21.5"
+base64 = "0.23"
 bson =  {version = "3.1.0", features= ["serde", "chrono-0_4"]}
 chrono = "0.4.31"
 common = { version = "0.1.0", path = "../common" }
