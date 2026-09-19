@@ -41,24 +41,19 @@ where
     Ok(deser)
 }
 
-pub fn serialize_bson<T>(entity: &T) -> Result<Bson, bson::ser::Error>
+pub fn serialize_bson<T>(entity: &T) -> Result<Bson, bson::error::Error>
 where
     T: ?Sized + Serialize,
 {
-    let obj = bson::to_bson(entity)?;
+    let obj = bson::serialize_to_bson(entity)?;
     Ok(obj)
 }
 
-pub fn deserilize_bson<T>(entity_bson: Bson) -> Result<T, bson::de::Error>
+pub fn deserilize_bson<T>(entity_bson: Bson) -> Result<T, bson::error::Error>
 where
     T: DeserializeOwned,
 {
-    let entity: T = match bson::from_bson(entity_bson) {
-        Ok(doc) => doc,
-        Err(err) => return Err(err),
-    };
-
-    Ok(entity)
+    bson::deserialize_from_bson(entity_bson)
 }
 
 pub fn write_in_file_if_not_exist<T>(path: PathBuf, instance: &T) -> Result<(), serde_yaml::Error>

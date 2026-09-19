@@ -13,5 +13,5 @@ common = { version = "0.1.0", path = "../common" }
 config = { version = "0.1.0", path = "../config" }
 entity = { version = "0.1.0", path = "../entity" }
 logger = { version = "0.1.0", path = "../logger" }
-mongodb = "3.2.5"
+mongodb = { version = "3.9.1", features = ["bson-3"] }
 serde = "1.0.193"

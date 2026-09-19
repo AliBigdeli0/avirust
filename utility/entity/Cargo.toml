@@ -1,14 +1,14 @@
 [package]
 name = "entity"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [lib]
 crate-type = ["rlib"]
 
 [dependencies]
 base64 = "0.21.5"
-bson = "3.1.0"
+bson =  {version = "3.1.0", features= ["serde", "chrono-0_4"]}
 chrono = "0.4.31"
 common = { version = "0.1.0", path = "../common" }
 error-stack = "0.4.1"

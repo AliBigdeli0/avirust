@@ -1,4 +1,4 @@
-use entity::{dto::excel_dto::ExcelInfo, model::db::*, serializer_helper::serialize_bson};
+use entity::{dto::excel_dto::ExcelInfo, model::db::*};
 use mongodb::{bson::doc, error::Error, options::ClientOptions, Client, Cursor, Database};
 
 use config::create_db_config_if_not_exist;
@@ -111,10 +111,9 @@ pub async fn insert_time_from_excel(
 
     let column_name = TimeData::generate_collection_name(excel_data.get_well_id(), excel_data.date);
 
-    let bson_data = serialize_bson(&time_data)?;
     database
-        .collection(&column_name)
-        .insert_one(bson_data)
+        .collection::<TimeData>(&column_name)
+        .insert_one(time_data)
         .await?;
 
     Ok(())
