@@ -10,7 +10,7 @@ extern crate web;
 #[tokio::main]
 async fn main() {
     common::file_helper::change_working_directory();
-    logger::init();
+    logger::init_with_name("client_logs.log");
 
     print_info();
 

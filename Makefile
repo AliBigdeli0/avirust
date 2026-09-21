@@ -12,6 +12,11 @@ WIN_FLAGS=--target=x86_64-pc-windows-gnu
 
 # ---------------------------------
 # run programs from source code 
+
+run_client:: 
+	@cargo build -p client 
+	@cd $(LINUX_ROOT_DEBUG_PATH); ./client 
+	
 run_export_checker:: build_export_checker 
 	@cd $(LINUX_ROOT_DEBUG_PATH); ./export_checker
 
