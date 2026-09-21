@@ -7,10 +7,20 @@ appenders:
     kind: console
 
   file:
-    kind: file
+    kind: rolling_file
     encoder:
       pattern: "{d(%Y-%m-%d %H:%M:%S)} | {({l}):5.5} | - {m}{n}"
     path: "logs/program.log"
+    policy:
+      kind: compound
+      trigger:
+        kind: size
+        limit: 200 mb
+      roller:
+        kind: fixed_window
+        pattern: "logs/program.log.{}"
+        base: 1
+        count: 100
 
 root:
   level: debug
