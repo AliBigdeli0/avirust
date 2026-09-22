@@ -16,7 +16,8 @@ pub fn start_mq_reader(
     tokio::spawn(async move {
         let mut stomp_conn = mq::mq::StompMQ::new(well_data)?;
 
-        stomp_conn.reset().await?;
+        stomp_conn.connect().await?;
+        stomp_conn.subscribe().await?;
 
         let run_result = stomp_conn.run(tx, cancel).await;
 

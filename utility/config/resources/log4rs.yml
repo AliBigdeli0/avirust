@@ -23,7 +23,7 @@ appenders:
         count: 100
 
 root:
-  level: debug
+  level: info 
   appenders:
     - stdout
     - file

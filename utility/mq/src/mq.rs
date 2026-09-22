@@ -41,13 +41,7 @@ impl StompMQ {
         })
     }
 
-    pub async fn reset(&mut self) -> MQResult<()> {
-        self.stop().await?;
-        self.start().await?;
-        Ok(())
-    }
-
-    async fn start(&mut self) -> MQResult<()> {
+    pub async fn connect(&mut self) -> MQResult<()> {
         logger::info("Going to start mq...");
         let username = EnvHelper::get_stomp_username();
         let password = EnvHelper::get_stomp_password();
@@ -64,28 +58,32 @@ impl StompMQ {
 
         logger::info(format!("Activemq connected to {}", self.client_stomp_addr).as_str());
 
-        let subscription = connection
-            .subscribe(
-                &self.well_data.get_server_mq_name(),
-                AckMode::ClientIndividual,
-            )
-            .await?;
-
-        logger::info(
-            format!(
-                "Activemq is subscribed to {}:{}",
-                self.client_stomp_addr,
-                self.well_data.get_server_mq_name()
-            )
-            .as_str(),
-        );
-
         self.connection = Some(connection);
-        self.subscription = Some(subscription);
-
         Ok(())
     }
 
+    pub async fn subscribe(&mut self) -> MQResult<()> {
+        if let Some(connection) = self.connection.as_ref() {
+            let subscription = connection
+                .subscribe(
+                    &self.well_data.get_server_mq_name(),
+                    AckMode::ClientIndividual,
+                )
+                .await?;
+
+            logger::info(
+                format!(
+                    "Activemq is subscribed to {}:{}",
+                    self.client_stomp_addr,
+                    self.well_data.get_server_mq_name()
+                )
+                .as_str(),
+            );
+
+            self.subscription = Some(subscription);
+        }
+        Ok(())
+    }
     pub async fn stop(&mut self) -> MQResult<()> {
         self.subscription.take();
 
@@ -144,10 +142,10 @@ impl StompMQ {
         Ok(())
     }
 
-    pub async fn push(&mut self, body: &str) -> MQResult<()> {
+    pub async fn push_to_bus(&mut self, body: &str) -> MQResult<()> {
         if let Some(connection) = self.connection.as_ref() {
             let frame = Frame::new("SEND")
-                .header("destination", self.well_data.get_bus_name())
+                .header("destination", self.well_data.get_topic_name())
                 .header("content-type", "text/plain")
                 .header("persistent", "true")
                 .set_body(body.as_bytes());

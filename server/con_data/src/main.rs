@@ -78,9 +78,9 @@ async fn run_application(mongo_address: &Arc<String>, well_id: &Arc<String>) -> 
 
     let (tx, rx) = mpsc::channel::<String>(200_000);
 
-    let mut mq_handle = start_mq_reader(tx, cancel.clone(), well_data);
+    let mut mq_handle = start_mq_reader(tx, cancel.clone(), well_data.clone());
 
-    let mut memory_handle = start_memory_writer(rx);
+    let mut memory_handle = start_memory_writer(rx, cancel.clone(), well_data);
 
     tokio::select! {
         result = &mut mq_handle => {

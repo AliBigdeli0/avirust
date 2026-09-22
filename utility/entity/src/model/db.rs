@@ -88,7 +88,7 @@ impl Well {
     }
 
     pub fn get_topic_name(&self) -> String {
-        format!("topic/{}", self.get_bus_name())
+        format!("/topic/{}", self.get_bus_name())
     }
 
     pub fn get_server_mq_name(&self) -> String {
