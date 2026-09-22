@@ -1,5 +1,14 @@
 # General
 
+## Environment Variables
+
+- `MED_REDIS_URL`: Required Redis connection URL (e.g., `redis://127.0.0.1:6379`).
+- `MED_AMQ_ADDRESS`: Required ActiveMQ broker address (e.g., `tcp://localhost:61616`).
+- `MED_MONGO_CONN_STR`: Required MongoDB connection string.
+- `MED_WELL_ID`: Required ID of the well to process.
+- `MED_STOMP_USERNAME`: STOMP authentication username; defaults to `admin`.
+- `MED_STOMP_PASSWORD`: STOMP authentication password; defaults to `admin`.
+
 ## Build Windows .exe File From Linux
 
 Before anything just pay attension to run :

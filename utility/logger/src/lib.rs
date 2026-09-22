@@ -2,7 +2,7 @@
 
 extern crate log;
 
-use log::{debug, error, info};
+use log::{debug, error, info, warn};
 
 pub fn get_version() -> String {
     String::from("1.0.0")
@@ -24,6 +24,10 @@ pub fn init_with_name(file_name: &str) {
 
 pub fn info(msg: &str) {
     info!("{}", msg);
+}
+
+pub fn warn(msg: &str) {
+    warn!("{}", msg);
 }
 
 pub fn error(msg: &str) {

@@ -3,13 +3,13 @@ use tokio::{sync::mpsc, time::sleep};
 use tokio_util::sync::CancellationToken;
 
 // internal
-use crate::{app_errors::AppResult, receiver::start_activemq_reader, sender::start_redis_writer};
+use crate::{app_errors::AppResult, reader::start_mq_reader, writer::start_memory_writer};
 use common::{constants::REASTART_APP_SEC, env_helper::EnvHelper};
 
 mod app_errors;
-mod receiver;
-mod sender;
+mod reader;
 mod well_actions;
+mod writer;
 
 extern crate common;
 extern crate config;
@@ -74,19 +74,35 @@ fn print_info() {
 async fn run_application(mongo_address: &Arc<String>, well_id: &Arc<String>) -> AppResult<()> {
     let cancel = CancellationToken::new();
 
-    let _ = well_actions::read_well(mongo_address, well_id).await?;
+    let well_data = well_actions::read_well(mongo_address, well_id).await?;
 
     let (tx, rx) = mpsc::channel::<String>(200_000);
 
-    let mq_handle = start_activemq_reader(tx, cancel.clone());
+    let mut mq_handle = start_mq_reader(tx, cancel.clone(), well_data);
 
-    let memory_handle = start_redis_writer(rx);
+    let mut memory_handle = start_memory_writer(rx);
 
-    cancel.cancel();
+    tokio::select! {
+        result = &mut mq_handle => {
+            cancel.cancel();
 
-    mq_handle.await??;
+            result??;
+        }
 
-    memory_handle.await??;
+        result = &mut memory_handle => {
+            cancel.cancel();
+
+            result??;
+        }
+    }
+
+    if !mq_handle.is_finished() {
+        mq_handle.await??;
+    }
+
+    if !memory_handle.is_finished() {
+        memory_handle.await??;
+    }
 
     Ok(())
 }

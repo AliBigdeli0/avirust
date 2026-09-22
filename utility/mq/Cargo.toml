@@ -7,12 +7,15 @@ edition = "2021"
 crate-type = ["rlib"]
 
 [dependencies]
+common = { version = "0.1.0", path = "../common" }
 config = { version = "0.1.0", path = "../config" }
 entity = { version = "0.1.0", path = "../entity" }
 logger = { version = "0.1.0", path = "../logger" }
 stomp-rs = { version= "0.0.8" } 
 url = "2.5.2"
 tokio = { version = "1.53.1", features = ["full"] }
+tokio-util = "0.7"
 lapin = "4.12.0"
 iridium-stomp = "0.6.0"
+futures = "0.3"
 thiserror = "2.0.20"

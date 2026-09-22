@@ -52,6 +52,16 @@ pub fn replace_port(uri: &str, port: u16) -> Result<String, url::ParseError> {
     Ok(url.to_string())
 }
 
+pub fn get_stomp_address(address: &str) -> Result<String, url::ParseError> {
+    let url = Url::parse(address)?;
+
+    let host = url.host_str().ok_or(url::ParseError::EmptyHost)?;
+
+    let port = url.port().unwrap_or(61613);
+
+    Ok(format!("{host}:{port}"))
+}
+
 #[cfg(test)]
 mod test_net_helper {
     use super::*;

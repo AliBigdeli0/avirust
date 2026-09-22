@@ -26,4 +26,16 @@ impl EnvHelper {
             .expect("MED_WELL_ID env is not set!")
             .to_string()
     }
+
+    pub fn get_stomp_username() -> String {
+        env::var("MED_STOMP_USERNAME")
+            .unwrap_or_else(|_| "admin".into())
+            .to_string()
+    }
+
+    pub fn get_stomp_password() -> String {
+        env::var("MED_STOMP_PASSWORD")
+            .unwrap_or_else(|_| "admin".into())
+            .to_string()
+    }
 }

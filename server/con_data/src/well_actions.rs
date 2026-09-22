@@ -25,11 +25,7 @@ pub async fn read_well(mongo_address: &Arc<String>, well_id: &Arc<String>) -> Ap
         }
     };
 
-    let subtype_value = well_data
-        .server_configure
-        .mq_client_configure
-        .sub_type
-        .value;
+    let subtype_value = well_data.get_sub_type();
     if subtype_value != (SubTypeValues::AMQTextConsumer as i32) {
         let error_msg = format!(
             "DANGER ==> This program is not supporing any subtype except for AMQTextConsumer(32), current subtype is '{subtype_value}'"
@@ -39,9 +35,10 @@ pub async fn read_well(mongo_address: &Arc<String>, well_id: &Arc<String>) -> Ap
     }
 
     logger::info(&format!(
-        "Well #{} is fetched from db ({})",
+        "Well #{} is fetched from db (topic: '{}', mq name: '{}')",
         well_data.id,
-        well_data.get_topic_name()
+        well_data.get_topic_name(),
+        well_data.get_server_mq_name()
     ));
 
     client.shutdown().await;

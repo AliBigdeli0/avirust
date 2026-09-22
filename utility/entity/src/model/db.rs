@@ -79,12 +79,28 @@ pub struct Well {
 }
 
 impl Well {
+    pub fn get_sub_type(&self) -> i32 {
+        self.server_configure.mq_client_configure.sub_type.value
+    }
+
     pub fn get_bus_name(&self) -> String {
         format!("bus.{}_{}", self.id, self.name)
     }
 
     pub fn get_topic_name(&self) -> String {
         format!("topic/{}", self.get_bus_name())
+    }
+
+    pub fn get_server_mq_name(&self) -> String {
+        self.server_configure
+            .mq_client_configure
+            .mq_offline_name
+            .value
+            .clone()
+    }
+
+    pub fn get_server_mq_address(&self) -> &str {
+        &self.server_configure.mq_client_configure.uri.value
     }
 }
 
