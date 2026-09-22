@@ -66,7 +66,11 @@ async fn main() -> app_errors::AppResult<()> {
         return Err(AppError::Text(error_msg));
     }
 
-    logger::info(&format!("Well #{} is fetched from db.", well_data.id));
+    logger::info(&format!(
+        "Well #{} is fetched from db ({})",
+        well_data.id,
+        well_data.get_topic_name()
+    ));
 
     Ok(())
 }

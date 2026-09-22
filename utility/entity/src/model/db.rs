@@ -78,6 +78,16 @@ pub struct Well {
     pub server_configure: ServerConfigure,
 }
 
+impl Well {
+    pub fn get_bus_name(&self) -> String {
+        format!("bus.{}_{}", self.id, self.name)
+    }
+
+    pub fn get_topic_name(&self) -> String {
+        format!("topic/{}", self.get_bus_name())
+    }
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 #[allow(non_snake_case, dead_code)]
 pub struct TimeData {
