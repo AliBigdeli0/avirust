@@ -1,9 +1,12 @@
+use entity::model::db::{SubTypeValues, Well};
 use mongodb::{Client, Database};
 use std::sync::Arc;
 
 // internal
 use common::env_helper::EnvHelper;
-use db::dberror;
+use db::{dberror, mongo::read_all_wells};
+
+use crate::app_errors::AppError;
 
 mod app_errors;
 
@@ -24,15 +27,15 @@ async fn main() -> app_errors::AppResult<()> {
     logger::init_with_name(&format!("con_data_{}.log", &well_id));
 
     logger::info(BANNER);
-    logger::info("Con Data has started");
+    logger::info("Con Data started!");
     logger::info(&format!("Well ID is :{}", &well_id));
-    logger::info(&format!("DB connection:'{}'", &mongo_address));
-    logger::info(&format!("Redis connection:'{}'", &redis_address));
-    logger::info(&format!("AMQ connection:'{}'", &activemq_address));
+    logger::info(&format!("DB connection string:'{}'", &mongo_address));
+    logger::info(&format!("Redis connection string:'{}'", &redis_address));
+    logger::info(&format!("AMQ connection string:'{}'", &activemq_address));
 
     print_info();
 
-    let (_, _) = match init_db(&mongo_address).await {
+    let (_, database) = match init_db(&mongo_address).await {
         Ok((client, db)) => (client, db),
         Err(err) => {
             logger::error(&format!("{err}"));
@@ -41,7 +44,29 @@ async fn main() -> app_errors::AppResult<()> {
         }
     };
 
-    logger::info("Database is prepaerd!");
+    let well_data = match fetch_well(database, &well_id).await {
+        Ok(well) => well,
+        Err(err) => {
+            logger::error(&format!("{err}"));
+
+            return Err(err.into());
+        }
+    };
+
+    let subtype_value = well_data
+        .server_configure
+        .mq_client_configure
+        .sub_type
+        .value;
+    if subtype_value != (SubTypeValues::AMQTextConsumer as i32) {
+        let error_msg = format!(
+            "DANGER ==> This program is not supporing any subtype except for AMQTextConsumer(32), current subtype is '{subtype_value}'"
+        );
+        logger::error(error_msg.as_str());
+        return Err(AppError::Text(error_msg));
+    }
+
+    logger::info(&format!("Well #{} is fetched from db.", well_data.id));
 
     Ok(())
 }
@@ -69,4 +94,19 @@ async fn init_db(connection_str: &Arc<String>) -> dberror::Result<(Client, Datab
     let (client, database) = db::mongo::init_with_connection_string(connection_str).await?;
 
     Ok((client, database))
+}
+
+async fn fetch_well(database: Database, well_id: &Arc<String>) -> dberror::Result<Arc<&Well>> {
+    let well = read_all_wells(database)
+        .await?
+        .iter()
+        .find(|well| well.id == well_id.to_string());
+
+    if let Some(well) = well {
+        return Ok(Arc::new(well));
+    } else {
+        return Err(dberror::DbError::TextError(
+            "Error in getting well from db".into(),
+        ));
+    }
 }

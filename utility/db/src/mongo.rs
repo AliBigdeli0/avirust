@@ -74,7 +74,7 @@ pub async fn check_db_exist(
         .map_err(|_| Error::custom("error in get data from create db"))?);
 
     let name = database.name();
-    logger::info(&format!("the database name is: {}", name));
+    logger::info(&format!("Database name is: {}", name));
 
     let ping_doc = doc! {
         "ping": 1
@@ -86,14 +86,14 @@ pub async fn check_db_exist(
         .await
         .expect("error in database connection");
 
-    logger::info("database connection has tested successfully!");
+    logger::info("database connection is tested successfully!");
     Ok((client, database))
 }
 
 pub async fn read_all_wells<'a>(database: Database) -> dberror::Result<&'a Vec<Well>> {
     read_all_from_db::<Well>(database, WELL_COLLECTION_NAME)
         .await
-        .map_err(|_| dberror::DbError::TextError("error in read all wells".into()))
+        .map_err(|err| dberror::DbError::TextError(format!("Reading all wells: {err}")))
 }
 
 pub async fn insert_time_from_excel(

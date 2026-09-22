@@ -52,7 +52,7 @@ pub struct MQClientConfigure {
     pub mq_offline_name: DocumentValue,
 
     #[serde(rename = "SubType")]
-    pub sub_type: DocumentValue<SubTypeValues>,
+    pub sub_type: DocumentValue<i32>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
