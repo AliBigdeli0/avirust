@@ -1,6 +1,8 @@
 pub const UI_APP_NAME: &str = "MED Well View";
 pub const SERVER_DB_APP_NAME: &str = "Server Data Receiver";
 pub const EMPTY_STR: &str = "";
+
+pub const REASTART_APP_SEC: u64 = 5;
 #[cfg(test)]
 mod test_constatns {
     use super::*;

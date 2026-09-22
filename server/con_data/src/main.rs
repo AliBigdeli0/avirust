@@ -1,12 +1,13 @@
 use entity::model::db::{SubTypeValues, Well};
 use mongodb::{Client, Database};
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
+use tokio::time::sleep;
+use tokio_util::sync::CancellationToken;
 
 // internal
-use common::env_helper::EnvHelper;
+use crate::app_errors::{AppError, AppResult};
+use common::{constants::REASTART_APP_SEC, env_helper::EnvHelper};
 use db::{dberror, mongo::read_all_wells};
-
-use crate::app_errors::AppError;
 
 mod app_errors;
 
@@ -16,7 +17,7 @@ extern crate config;
 const BANNER: &str = include_str!("../assets/banner.txt");
 
 #[tokio::main]
-async fn main() -> app_errors::AppResult<()> {
+async fn main() {
     common::file_helper::change_working_directory();
 
     let well_id = Arc::new(EnvHelper::get_well_id());
@@ -28,14 +29,52 @@ async fn main() -> app_errors::AppResult<()> {
 
     logger::info(BANNER);
     logger::info("Con Data started!");
-    logger::info(&format!("Well ID is :{}", &well_id));
-    logger::info(&format!("DB connection string:'{}'", &mongo_address));
-    logger::info(&format!("Redis connection string:'{}'", &redis_address));
-    logger::info(&format!("AMQ connection string:'{}'", &activemq_address));
+    logger::info(format!("Well ID is :{}", &well_id).as_str());
+    logger::info(format!("DB connection string:'{}'", &mongo_address).as_str());
+    logger::info(format!("Redis connection string:'{}'", &redis_address).as_str());
+    logger::info(format!("AMQ connection string:'{}'", &activemq_address).as_str());
 
     print_info();
 
-    let (_, database) = match init_db(&mongo_address).await {
+    loop {
+        match run_application(&mongo_address, &well_id).await {
+            Ok(_) => {
+                logger::info("Application finished normally");
+                break;
+            }
+
+            Err(err) => {
+                logger::error(format!("Application failed: {err}").as_str());
+                logger::info(format!("Restarting in {REASTART_APP_SEC} seconds...").as_str());
+
+                sleep(Duration::from_secs(REASTART_APP_SEC)).await;
+            }
+        }
+    }
+}
+
+fn print_info() {
+    // libs
+    logger::info(&format!("entity version is: {}", entity::get_version()));
+    logger::info(&format!("common version is: {}", common::get_lib_version()));
+    logger::info(&format!("config version is: {}", config::get_version()));
+    logger::info(&format!("logger version is: {}", logger::get_version()));
+
+    // directory ifo
+    logger::info(&format!(
+        "Working directory is: {}",
+        common::file_helper::current_path().to_str().unwrap()
+    ));
+    logger::info(&format!(
+        "Configure directory is: {}",
+        common::file_helper::config_path().to_str().unwrap()
+    ));
+}
+
+async fn run_application(mongo_address: &Arc<String>, well_id: &Arc<String>) -> AppResult<()> {
+    let _ = CancellationToken::new();
+
+    let (client, database) = match init_db(&mongo_address).await {
         Ok((client, db)) => (client, db),
         Err(err) => {
             logger::error(&format!("{err}"));
@@ -72,25 +111,9 @@ async fn main() -> app_errors::AppResult<()> {
         well_data.get_topic_name()
     ));
 
+    client.shutdown().await;
+
     Ok(())
-}
-
-fn print_info() {
-    // libs
-    logger::info(&format!("entity version is: {}", entity::get_version()));
-    logger::info(&format!("common version is: {}", common::get_lib_version()));
-    logger::info(&format!("config version is: {}", config::get_version()));
-    logger::info(&format!("logger version is: {}", logger::get_version()));
-
-    // directory ifo
-    logger::info(&format!(
-        "Working directory is: {}",
-        common::file_helper::current_path().to_str().unwrap()
-    ));
-    logger::info(&format!(
-        "Configure directory is: {}",
-        common::file_helper::config_path().to_str().unwrap()
-    ));
 }
 
 async fn init_db(connection_str: &Arc<String>) -> dberror::Result<(Client, Database)> {
