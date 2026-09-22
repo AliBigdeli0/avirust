@@ -15,7 +15,7 @@ WIN_FLAGS=--target=x86_64-pc-windows-gnu
 
 run_con_data::
 	@cargo build -p con_data 
-	@cd $(LINUX_ROOT_DEBUG_PATH); MED_WELL_ID=2345415781  MED_MONGO_CONN_STR="mongodb://localhost:27017/?connectTimeoutMS=30000&serverSelectionTimeoutMS=30000&heartbeatFrequencyMS=10000"   MED_AMQ_ADDRESS=tcp://localhost:61616 MED_REDIS_URL=redis://127.0.0.1:6379 ./con_data
+	@cd $(LINUX_ROOT_DEBUG_PATH); MED_WELL_ID=2345415781  MED_MONGO_CONN_STR="mongodb://localhost:27017/?connectTimeoutMS=30000&serverSelectionTimeoutMS=30000&heartbeatFrequencyMS=10000"   MED_AMQ_STOMP_ADDRESS=tcp://localhost:61613 MED_REDIS_URL=redis://127.0.0.1:6379 ./con_data
 
 run_client:: 
 	@cargo build -p client 

@@ -18,7 +18,7 @@ const SEND_HEARTBEAT_MS: u32 = 10_000;
 const RECEIVE_HEARTBEAT_MS: u32 = 10_000;
 
 pub struct StompMQ {
-    client_stomp_addr: String,
+    client_addr: String,
     well_data: Arc<Well>,
 
     connection: Option<Connection>,
@@ -26,14 +26,19 @@ pub struct StompMQ {
 }
 
 impl StompMQ {
-    pub fn new(well_data: Arc<Well>) -> MQResult<StompMQ> {
+    pub fn new_stomp(well_data: Arc<Well>) -> MQResult<StompMQ> {
         let converted_address = replace_port(well_data.get_server_mq_address(), STOMP_PORT)?;
-        let stomp_address = get_stomp_address(&converted_address)?;
 
-        logger::info(format!("The converted stomp address is: {}", stomp_address).as_str());
+        StompMQ::new_with_address(well_data, converted_address)
+    }
+
+    pub fn new_with_address(well_data: Arc<Well>, addr: String) -> MQResult<StompMQ> {
+        let stomp_address = get_stomp_address(&addr)?;
+
+        logger::info(format!("MQ initiated with the address: {}", stomp_address).as_str());
 
         Ok(StompMQ {
-            client_stomp_addr: stomp_address,
+            client_addr: stomp_address,
             well_data: well_data,
 
             connection: None,
@@ -49,14 +54,14 @@ impl StompMQ {
         let heartbeat = Heartbeat::new(SEND_HEARTBEAT_MS, RECEIVE_HEARTBEAT_MS);
 
         let connection = Connection::connect(
-            self.client_stomp_addr.as_str(),
+            self.client_addr.as_str(),
             username.as_str(),
             password.as_str(),
             &heartbeat.to_string(),
         )
         .await?;
 
-        logger::info(format!("Activemq connected to {}", self.client_stomp_addr).as_str());
+        logger::info(format!("Activemq connected to {}", self.client_addr).as_str());
 
         self.connection = Some(connection);
         Ok(())
@@ -74,13 +79,15 @@ impl StompMQ {
             logger::info(
                 format!(
                     "Activemq is subscribed to {}:{}",
-                    self.client_stomp_addr,
+                    self.client_addr,
                     self.well_data.get_server_mq_name()
                 )
                 .as_str(),
             );
 
             self.subscription = Some(subscription);
+        } else {
+            logger::error("Invalid connection for subscription.");
         }
         Ok(())
     }

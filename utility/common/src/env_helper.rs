@@ -9,9 +9,9 @@ impl EnvHelper {
             .to_string()
     }
 
-    pub fn get_amq_address() -> String {
-        env::var("MED_AMQ_ADDRESS")
-            .expect("MED_AMQ_ADDRESS env is not set!")
+    pub fn get_amq_stomp_address() -> String {
+        env::var("MED_AMQ_STOMP_ADDRESS")
+            .expect("MED_AMQ_STOMP_ADDRESS env is not set!")
             .to_string()
     }
 

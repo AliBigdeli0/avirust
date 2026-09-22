@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use common::env_helper::EnvHelper;
 use entity::model::db::Well;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
@@ -12,7 +13,10 @@ pub fn start_memory_writer(
     well_data: Arc<Well>,
 ) -> JoinHandle<AppResult<()>> {
     tokio::spawn(async move {
-        let mut stomp_conn = mq::mq::StompMQ::new(well_data.clone())?;
+        let mut stomp_conn = mq::mq::StompMQ::new_with_address(
+            well_data.clone(),
+            EnvHelper::get_amq_stomp_address(),
+        )?;
         let mut msg_counter: u128 = 1;
 
         stomp_conn.connect().await?;

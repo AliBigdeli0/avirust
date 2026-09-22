@@ -14,17 +14,17 @@ pub fn start_mq_reader(
     well_data: Arc<Well>,
 ) -> JoinHandle<AppResult<()>> {
     tokio::spawn(async move {
-        let mut stomp_conn = mq::mq::StompMQ::new(well_data)?;
+        let mut stomp_conn = mq::mq::StompMQ::new_stomp(well_data)?;
 
         stomp_conn.connect().await?;
         stomp_conn.subscribe().await?;
 
         let run_result = stomp_conn.run(tx, cancel).await;
 
-        let stomp_result = stomp_conn.stop().await;
+        let stop_result = stomp_conn.stop().await;
 
         run_result?;
-        stomp_result?;
+        stop_result?;
 
         Ok(())
     })

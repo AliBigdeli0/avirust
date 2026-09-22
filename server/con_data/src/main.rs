@@ -23,7 +23,7 @@ async fn main() {
     let well_id = Arc::new(EnvHelper::get_well_id());
     let mongo_address = Arc::new(EnvHelper::get_mongo_address());
     let redis_address = Arc::new(EnvHelper::get_redis_address());
-    let activemq_address = Arc::new(EnvHelper::get_amq_address());
+    let activemq_address = Arc::new(EnvHelper::get_amq_stomp_address());
 
     logger::init_with_name(&format!("con_data_{}.log", &well_id));
 
