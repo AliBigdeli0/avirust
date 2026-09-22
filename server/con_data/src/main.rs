@@ -76,7 +76,7 @@ async fn run_application(mongo_address: &Arc<String>, well_id: &Arc<String>) -> 
 
     let _ = well_actions::read_well(mongo_address, well_id).await?;
 
-    let (tx, rx) = mpsc::channel::<String>(0xfffff);
+    let (tx, rx) = mpsc::channel::<String>(200_000);
 
     let mq_handle = start_activemq_reader(tx, cancel.clone());
 
