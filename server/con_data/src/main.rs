@@ -1,15 +1,15 @@
-use entity::model::db::{SubTypeValues, Well};
-use mongodb::{Client, Database};
 use std::{sync::Arc, time::Duration};
-use tokio::time::sleep;
+use tokio::{sync::mpsc, time::sleep};
 use tokio_util::sync::CancellationToken;
 
 // internal
-use crate::app_errors::{AppError, AppResult};
+use crate::{app_errors::AppResult, receiver::start_activemq_reader, sender::start_redis_writer};
 use common::{constants::REASTART_APP_SEC, env_helper::EnvHelper};
-use db::{dberror, mongo::read_all_wells};
 
 mod app_errors;
+mod receiver;
+mod sender;
+mod well_actions;
 
 extern crate common;
 extern crate config;
@@ -72,68 +72,21 @@ fn print_info() {
 }
 
 async fn run_application(mongo_address: &Arc<String>, well_id: &Arc<String>) -> AppResult<()> {
-    let _ = CancellationToken::new();
+    let cancel = CancellationToken::new();
 
-    let (client, database) = match init_db(&mongo_address).await {
-        Ok((client, db)) => (client, db),
-        Err(err) => {
-            logger::error(&format!("{err}"));
+    let _ = well_actions::read_well(mongo_address, well_id).await?;
 
-            return Err(err.into());
-        }
-    };
+    let (tx, rx) = mpsc::channel::<String>(0xfffff);
 
-    let well_data = match fetch_well(database, &well_id).await {
-        Ok(well) => well,
-        Err(err) => {
-            logger::error(&format!("{err}"));
+    let mq_handle = start_activemq_reader(tx, cancel.clone());
 
-            return Err(err.into());
-        }
-    };
+    let memory_handle = start_redis_writer(rx);
 
-    let subtype_value = well_data
-        .server_configure
-        .mq_client_configure
-        .sub_type
-        .value;
-    if subtype_value != (SubTypeValues::AMQTextConsumer as i32) {
-        let error_msg = format!(
-            "DANGER ==> This program is not supporing any subtype except for AMQTextConsumer(32), current subtype is '{subtype_value}'"
-        );
-        logger::error(error_msg.as_str());
-        return Err(AppError::Text(error_msg));
-    }
+    cancel.cancelled().await;
 
-    logger::info(&format!(
-        "Well #{} is fetched from db ({})",
-        well_data.id,
-        well_data.get_topic_name()
-    ));
+    mq_handle.await??;
 
-    client.shutdown().await;
+    memory_handle.await??;
 
     Ok(())
-}
-
-async fn init_db(connection_str: &Arc<String>) -> dberror::Result<(Client, Database)> {
-    logger::info("preparing database...");
-    let (client, database) = db::mongo::init_with_connection_string(connection_str).await?;
-
-    Ok((client, database))
-}
-
-async fn fetch_well(database: Database, well_id: &Arc<String>) -> dberror::Result<Arc<&Well>> {
-    let well = read_all_wells(database)
-        .await?
-        .iter()
-        .find(|well| well.id == well_id.to_string());
-
-    if let Some(well) = well {
-        return Ok(Arc::new(well));
-    } else {
-        return Err(dberror::DbError::TextError(
-            "Error in getting well from db".into(),
-        ));
-    }
 }
