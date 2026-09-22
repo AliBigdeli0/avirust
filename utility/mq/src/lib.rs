@@ -1,13 +1,9 @@
-// #![deny(warnings)]
-
 pub fn get_version() -> &'static str {
-    "1.0.0"
+    "2.0.0"
 }
 
 pub mod mq;
 pub mod mqerror;
-mod openwire;
-mod openwire_commands;
 
 #[cfg(test)]
 mod tests {
@@ -15,6 +11,6 @@ mod tests {
 
     #[test]
     fn version() {
-        assert_eq!(get_version(), "1.0.0")
+        assert_eq!(get_version(), "2.0.0")
     }
 }

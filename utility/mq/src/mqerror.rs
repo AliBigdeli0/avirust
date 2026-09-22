@@ -1,5 +1,6 @@
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum MqError {
+    #[error("{0}")]
     TextErr(String),
 }
 

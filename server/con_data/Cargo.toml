@@ -8,6 +8,7 @@ common = { version = "0.1.0", path = "../../utility/common" }
 logger = { version = "0.1.0", path = "../../utility/logger" }
 entity = { version = "0.1.0", path = "../../utility/entity" }
 config = { version = "0.1.0", path = "../../utility/config" }
+mq = { version = "0.1.0", path = "../../utility/mq" }
 db = { version = "0.1.0", path = "../../utility/db" }
 tokio = { version = "1.53.1", features = ["full"] }
 tokio-util = "0.7"

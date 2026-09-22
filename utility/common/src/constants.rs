@@ -3,6 +3,8 @@ pub const SERVER_DB_APP_NAME: &str = "Server Data Receiver";
 pub const EMPTY_STR: &str = "";
 
 pub const REASTART_APP_SEC: u64 = 5;
+
+pub const STOMP_PORT: u16 = 61613;
 #[cfg(test)]
 mod test_constatns {
     use super::*;

@@ -1,5 +1,3 @@
-// #![deny(warnings)]
-
 extern crate common;
 extern crate db;
 extern crate entity;
@@ -43,55 +41,6 @@ async fn main() -> serverdberrors::Result<()> {
         loop {
             ///////////////////////////////////
             // mq init
-            let mq_well = well.clone();
-            let mq_name = mq_well
-                .server_configure
-                .mq_client_configure
-                .uri
-                .value
-                .as_ref();
-
-            let mq_address = mq_well
-                .server_configure
-                .mq_client_configure
-                .mq_offline_name
-                .value;
-
-            let mq_address_str = mq_address.as_str();
-
-            let mq_instance =
-                mq::mq::init_session(mq_name, mq_address_str, mq::mq::TypeOfMQ::OpenWire)
-                    .await
-                    .map_err(|e| {
-                        serverdberrors::ServerDbError::TextErr(format!(
-                            "Error in initiating mq instance: {:?}",
-                            e
-                        ))
-                    });
-
-            match mq_instance {
-                Ok(mut value) => {
-                    let mq = value.as_mut();
-                    let connection_result = mq.connect_to_mq().await;
-
-                    if let Ok(_) = connection_result {
-                        logger::info("Successfully connected to MQ!");
-
-                        let _ = mq
-                            .receive(Box::new(|data| {
-                                logger::info(&format!(
-                                    "DATA RECEIVED ==> {}",
-                                    String::from_utf8(data.to_vec())
-                                        .expect("Invalid data from string!")
-                                ));
-                            }))
-                            .await;
-                    } else if let Err(err) = connection_result {
-                        logger::error(&format!("Error in initiate mq instance: {:?}", err))
-                    }
-                }
-                Err(err) => logger::error(&format!("Error in initiate mq instance: {:?}", err)),
-            }
 
             // finish part
             sleep(Duration::from_secs(3)).await;

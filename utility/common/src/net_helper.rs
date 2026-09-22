@@ -3,6 +3,7 @@ use std::net::SocketAddr;
 use std::time::Duration;
 use tokio::net::TcpStream;
 use tokio::time::timeout;
+use url::Url;
 
 // TcpStreamTrait
 
@@ -40,6 +41,15 @@ pub async fn check_port(addr: SocketAddr, op_timeout: Option<u64>) -> bool {
 
 async fn is_tcp_port_open<T: StreamTrait>(addr: SocketAddr, inst_network: &T) -> bool {
     inst_network.ping(addr).await
+}
+
+pub fn replace_port(uri: &str, port: u16) -> Result<String, url::ParseError> {
+    let mut url = Url::parse(uri)?;
+
+    url.set_port(Some(port))
+        .map_err(|_| url::ParseError::InvalidPort)?;
+
+    Ok(url.to_string())
 }
 
 #[cfg(test)]
