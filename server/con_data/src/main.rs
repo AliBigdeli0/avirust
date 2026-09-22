@@ -82,7 +82,7 @@ async fn run_application(mongo_address: &Arc<String>, well_id: &Arc<String>) -> 
 
     let memory_handle = start_redis_writer(rx);
 
-    cancel.cancelled().await;
+    cancel.cancel();
 
     mq_handle.await??;
 
