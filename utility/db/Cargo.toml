@@ -15,3 +15,4 @@ entity = { version = "0.1.0", path = "../entity" }
 logger = { version = "0.1.0", path = "../logger" }
 mongodb = { version = "3.9.1", features = ["bson-3"] }
 serde = "1.0.193"
+thiserror = "2.0.20"

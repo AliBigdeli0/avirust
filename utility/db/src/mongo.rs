@@ -22,7 +22,7 @@ pub async fn init_with_connection_string(
 
     check_db_exist(config)
         .await
-        .map_err(|_| dberror::DbError::TextError("database does not running".into()))
+        .map_err(|_| dberror::DbError::TextError("database is not running!".into()))
 }
 
 async fn create_db(

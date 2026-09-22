@@ -1,6 +1,11 @@
+use mongodb::{Client, Database};
 use std::sync::Arc;
 
+// internal
 use common::env_helper::EnvHelper;
+use db::dberror;
+
+mod app_errors;
 
 extern crate common;
 extern crate config;
@@ -8,7 +13,7 @@ extern crate config;
 const BANNER: &str = include_str!("../assets/banner.txt");
 
 #[tokio::main]
-async fn main() {
+async fn main() -> app_errors::AppResult<()> {
     common::file_helper::change_working_directory();
 
     let well_id = Arc::new(EnvHelper::get_well_id());
@@ -26,6 +31,19 @@ async fn main() {
     logger::info(&format!("AMQ connection:'{}'", &activemq_address));
 
     print_info();
+
+    let (_, _) = match init_db(&mongo_address).await {
+        Ok((client, db)) => (client, db),
+        Err(err) => {
+            logger::error(&format!("{err}"));
+
+            return Err(err.into());
+        }
+    };
+
+    logger::info("Database is prepaerd!");
+
+    Ok(())
 }
 
 fn print_info() {
@@ -37,11 +55,18 @@ fn print_info() {
 
     // directory ifo
     logger::info(&format!(
-        "working directory is: {}",
+        "Working directory is: {}",
         common::file_helper::current_path().to_str().unwrap()
     ));
     logger::info(&format!(
-        "configure directory is: {}",
+        "Configure directory is: {}",
         common::file_helper::config_path().to_str().unwrap()
     ));
+}
+
+async fn init_db(connection_str: &Arc<String>) -> dberror::Result<(Client, Database)> {
+    logger::info("preparing database...");
+    let (client, database) = db::mongo::init_with_connection_string(connection_str).await?;
+
+    Ok((client, database))
 }

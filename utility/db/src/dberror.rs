@@ -1,5 +1,6 @@
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum DbError {
+    #[error("{0}")]
     TextError(String),
 }
 
