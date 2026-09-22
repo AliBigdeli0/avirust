@@ -19,6 +19,7 @@ members=[
     "server/server_db", 
     "utility/mq", 
     "server/export_checker", 
+    "server/con_data", 
 ]
 
 [profile.win]

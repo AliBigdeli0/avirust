@@ -24,12 +24,22 @@ pub fn convert_to_bson_date(d: ChronoDateTime<Utc>) -> BsonDateTime {
 
 #[derive(Debug, Deserialize, Clone)]
 #[allow(dead_code)]
-pub struct DocumentValue {
+pub struct DocumentValue<T = String> {
     #[serde(rename = "Document")]
     pub document: String,
 
     #[serde(rename = "Value")]
-    pub value: String,
+    pub value: T,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub enum SubTypeValues {
+    AMQProducer = 1,
+    AMQConsumer = 2,
+    RabbitProducer = 4,
+    RabbitConsumer = 8,
+    AMQTextProducer = 16,
+    AMQTextConsumer = 32,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -40,6 +50,9 @@ pub struct MQClientConfigure {
 
     #[serde(rename = "MQOfflineName")]
     pub mq_offline_name: DocumentValue,
+
+    #[serde(rename = "SubType")]
+    pub sub_type: DocumentValue<SubTypeValues>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -61,7 +74,6 @@ pub struct Well {
     pub ip: String,
     #[serde(rename = "IsActive")]
     pub is_active: bool,
-
     #[serde(rename = "ServerConfigure")]
     pub server_configure: ServerConfigure,
 }
