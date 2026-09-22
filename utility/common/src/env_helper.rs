@@ -13,6 +13,12 @@ impl EnvHelper {
             .to_string()
     }
 
+    pub fn get_mongo_address() -> String {
+        env::var("MED_MONGO_CONN_STR")
+            .expect("MED_MONGO_CONN_STR env is not set!")
+            .to_string()
+    }
+
     pub fn get_well_id() -> String {
         env::var("MED_WELL_ID")
             .expect("MED_WELL_ID env is not set!")

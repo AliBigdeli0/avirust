@@ -15,7 +15,7 @@ WIN_FLAGS=--target=x86_64-pc-windows-gnu
 
 run_con_data::
 	@cargo build -p con_data 
-	@cd $(LINUX_ROOT_DEBUG_PATH); ./con_data
+	@cd $(LINUX_ROOT_DEBUG_PATH); MED_WELL_ID=2345415781 MED_MONGO_CONN_STR=mongodb://localhost:27017 ./con_data
 
 run_client:: 
 	@cargo build -p client 
