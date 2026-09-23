@@ -1,7 +1,8 @@
-use std::sync::Arc;
+use core::time;
+use std::{sync::Arc, thread, time::Duration};
 
 use common::env_helper::EnvHelper;
-use entity::model::db::Well;
+use entity::model::db::{TimeData, TimeDataJson, Well};
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
@@ -36,8 +37,12 @@ pub fn start_memory_writer(
                         Some(body) => {
                             stomp_conn.push_to_bus(&body).await?;
 
+                            let time_data: TimeDataJson =
+                                TimeDataJson::from_json_str(body.to_string())?;
+
                             logger::debug(format!("#{} and pushed to '{}'",msg_counter, well_data.clone().get_bus_name()).as_str());
                             logger::debug(body.as_str());
+                            logger::debug(format!("Well id from json: {}", time_data.well_id).as_str());
                             logger::debug("======================");
                             msg_counter += 1;
                         }

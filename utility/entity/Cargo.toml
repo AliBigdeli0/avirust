@@ -9,10 +9,10 @@ crate-type = ["rlib"]
 [dependencies]
 base64 = "0.23"
 bson =  {version = "3.1.0", features= ["serde", "chrono-0_4"]}
-chrono = "0.4.31"
+chrono = { version = "0.4.31", features = ["serde"] }
 common = { version = "0.1.0", path = "../common" }
-error-stack = "0.4.1"
+error-stack = "0.8.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_yaml = "0.9.27"
-thiserror = "1.0.61"
+thiserror = "2.0.20"

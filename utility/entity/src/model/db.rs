@@ -7,6 +7,8 @@ use chrono::prelude::*;
 use chrono::{DateTime as ChronoDateTime, Datelike, Utc};
 use serde::{Deserialize, Serialize};
 
+use crate::errors::{DbModelError, DbModelResult};
+
 pub const WELL_COLLECTION_NAME: &str = "wells";
 pub const START_DATE: i32 = 2000;
 
@@ -182,6 +184,39 @@ impl TimeData {
         };
 
         Ok(ret_binary)
+    }
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct TimeDataJson {
+    #[serde(rename = "GetAllDbData")]
+    pub data: HashMap<String, String>,
+
+    #[serde(rename = "Date")]
+    pub date: ChronoDateTime<Utc>,
+
+    #[serde(rename = "WellID")]
+    pub well_id: String,
+
+    #[serde(rename = "Comment", default)]
+    pub comment: String,
+
+    #[serde(rename = "TotalDepthCodes", default)]
+    pub total_depth_codes: Option<Vec<String>>,
+
+    #[serde(rename = "TotalDepth", default)]
+    pub total_depth: String,
+
+    #[serde(rename = "NeedDepthUpdate", default)]
+    pub need_depth_update: bool,
+
+    #[serde(rename = "WellName", default)]
+    pub well_name: Option<String>,
+}
+
+impl TimeDataJson {
+    pub fn from_json_str(body: String) -> DbModelResult<TimeDataJson> {
+        serde_json::from_str::<TimeDataJson>(&body).map_err(|err| DbModelError::SerdeJson(err))
     }
 }
 

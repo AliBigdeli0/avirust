@@ -1,4 +1,5 @@
 use db::dberror;
+use entity::errors::DbModelError;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -11,6 +12,9 @@ pub enum AppError {
 
     #[error("Task join error: {0}")]
     Join(#[from] tokio::task::JoinError),
+
+    #[error("Model Error: {0}")]
+    ModelError(#[from] DbModelError),
 
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),

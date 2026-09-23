@@ -1,4 +1,4 @@
-use std::fmt;
+use thiserror::Error;
 
 // -----------------------------------------
 pub trait ErrorTo<T> {
@@ -20,24 +20,22 @@ impl ErrorTo<String> for ExcelError {
 
 // -----------------------------------------
 
-#[derive(Debug)]
-pub struct MQErrors;
-
-impl fmt::Display for MQErrors {
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt.write_str("invalid mq error")
-    }
+#[derive(Debug, Error)]
+pub enum DbModelError {
+    #[error("{0}")]
+    SerdeJson(#[from] serde_json::Error),
 }
 
-impl error_stack::Context for MQErrors {}
+pub type DbModelResult<T> = std::result::Result<T, DbModelError>;
+
+// -----------------------------------------
+
 // -----------------------------------------
 
 #[cfg(test)]
 mod test_errors {
-    use error_stack::ResultExt;
 
     use super::*;
-    use std::fs::File;
 
     enum MockError {
         Message(String),
@@ -66,17 +64,5 @@ mod test_errors {
         };
 
         assert_eq!(mock_msg, "error");
-    }
-
-    #[test]
-    fn mq_error() {
-        let file_exchange = File::open("NOT_EXIST_FILE.txt")
-            .attach_printable_lazy(|| "error in read test file")
-            .change_context(MQErrors);
-
-        match file_exchange {
-            Ok(_) => assert!(false, "file can not be created, because it is fake"),
-            Err(_) => assert!(true, "everyhing is OK"),
-        };
     }
 }
