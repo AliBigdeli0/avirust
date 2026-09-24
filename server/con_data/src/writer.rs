@@ -1,8 +1,7 @@
-use core::time;
-use std::{sync::Arc, thread, time::Duration};
+use std::sync::Arc;
 
 use common::env_helper::EnvHelper;
-use entity::model::db::{TimeData, TimeDataJson, Well};
+use entity::model::db::{TimeDataJson, Well};
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
