@@ -14,8 +14,8 @@ use entity::model::db::Well;
 
 use crate::mqerror::MQResult;
 
-const SEND_HEARTBEAT_MS: u32 = 10_000;
-const RECEIVE_HEARTBEAT_MS: u32 = 10_000;
+const SEND_HEARTBEAT_MS: u32 = 20_000;
+const RECEIVE_HEARTBEAT_MS: u32 = 20_000;
 
 pub struct StompMQ {
     client_addr: String,

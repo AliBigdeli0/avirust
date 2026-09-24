@@ -7,7 +7,7 @@ use chrono::prelude::*;
 use chrono::{DateTime as ChronoDateTime, Datelike, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::errors::{DbModelError, DbModelResult};
+use crate::errors::DbModelResult;
 
 pub const WELL_COLLECTION_NAME: &str = "wells";
 pub const START_DATE: i32 = 2000;
@@ -216,7 +216,7 @@ pub struct TimeDataJson {
 
 impl TimeDataJson {
     pub fn from_json_str(body: String) -> DbModelResult<TimeDataJson> {
-        serde_json::from_str::<TimeDataJson>(&body).map_err(|err| DbModelError::SerdeJson(err))
+        Ok(serde_json::from_str::<TimeDataJson>(&body)?)
     }
 }
 
