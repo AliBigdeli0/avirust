@@ -3,3 +3,4 @@ vendor
 Cargo.lock
 .idea
 .DS_Store
+docs/README.md
