@@ -16,8 +16,7 @@ members=[
     "server/ui",
     "server/import_ui",
     "server/config_ui", 
-    "server/server_db", 
-    "utility/mq", 
+    "server/server_db",
     "server/export_checker", 
     "server/con_data", 
 ]
